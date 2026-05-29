@@ -25,6 +25,8 @@ if (!user.isAdmin) {
     <a href="dashboard.html">Dashboard</a>
     <a href="admin.html" class="active">Admin</a>
     <a href="hotel-info.html">About</a>
+    <a href="logout.html" id="logoutLink">Logout</a>
+    <script>if(!localStorage.getItem('hotelUser')){document.getElementById('logoutLink').style.display='none'}</script>
 </td></tr>
 <tr>
 <td class="sidebar">
@@ -96,7 +98,6 @@ if (!user.isAdmin) {
 
 </td>
 </tr>
-<tr><td class="footer" colspan="2">&copy; 2026 Kismaayo Hotel. All rights reserved.</td></tr>
 </table>
 
 <script>
@@ -281,10 +282,11 @@ function loadAllBookings() {
                 if (bookings.length === 0) {
                     html = '<p style="color:#888;">Wax booking ah ma jiraan.</p>';
                 } else {
-                    html = '<table class="data-table"><tr><th>ID</th><th>User</th><th>Name</th><th>Room</th><th>Check-In</th><th>Check-Out</th><th>Guests</th><th>Action</th></tr>';
+                    html = '<table class="data-table"><tr><th>ID</th><th>User</th><th>Name</th><th>Room Type</th><th>Rm #</th><th>Check-In</th><th>Check-Out</th><th>Guests</th><th>Action</th></tr>';
                     for (var i = 0; i < bookings.length; i++) {
                         var b = bookings[i];
-                        html += '<tr><td>' + b.id + '</td><td>' + b.username + '</td><td>' + b.name + '</td><td>' + b.roomType + '</td><td>' + b.checkin + '</td><td>' + b.checkout + '</td><td>' + b.guests + '</td>';
+                        var rn = b.roomNumber || '';
+                        html += '<tr><td>' + b.id + '</td><td>' + b.username + '</td><td>' + b.name + '</td><td>' + b.roomType + '</td><td>' + rn + '</td><td>' + b.checkin + '</td><td>' + b.checkout + '</td><td>' + b.guests + '</td>';
                         html += '<td><input type="button" value="Delete" class="btn btn-small" onclick="deleteBooking(\'' + b.id + '\')"></td></tr>';
                     }
                     html += '</table>';

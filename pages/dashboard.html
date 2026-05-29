@@ -19,8 +19,11 @@ if (!localStorage.getItem("hotelUser")) {
     <a href="rooms.html">Rooms</a>
     <a href="reservation.html">Book Now</a>
     <a href="dashboard.html" class="active">Dashboard</a>
-    <a href="admin.html">Admin</a>
+    <a href="admin.html" id="adminLink">Admin</a>
+    <script>if(localStorage.hotelUser){var u=JSON.parse(localStorage.hotelUser);if(!u.isAdmin){document.getElementById('adminLink').style.display='none'}}</script>
     <a href="hotel-info.html">About</a>
+    <a href="logout.html" id="logoutLink">Logout</a>
+    <script>if(!localStorage.getItem('hotelUser')){document.getElementById('logoutLink').style.display='none'}</script>
 </td></tr>
 <tr>
 <td class="sidebar">
@@ -39,8 +42,7 @@ if (!localStorage.getItem("hotelUser")) {
 <p style="color:#888;">Loading bookings...</p>
 </div>
 <br>
-<a href="reservation.html" class="btn btn-small">Book New Room</a>
-<a href="#" id="logoutBtn2" class="btn btn-small">Logout</a>
+    <a href="reservation.html" class="btn btn-small">Book New Room</a>
 </div>
 
 <br>
@@ -61,7 +63,6 @@ if (!localStorage.getItem("hotelUser")) {
 
 </td>
 </tr>
-<tr><td class="footer" colspan="2">&copy; 2026 Kismaayo Hotel. All rights reserved.</td></tr>
 </table>
 
 <script>
@@ -87,10 +88,10 @@ function loadBookings() {
                     html = '<p style="color:#888;">Wax booking ah ma lihid.</p>';
                 } else {
                     html = '<table class="data-table">';
-                    html += '<tr><th>ID</th><th>Room Type</th><th>Check-In</th><th>Check-Out</th><th>Guests</th><th>Action</th></tr>';
+                    html += '<tr><th>ID</th><th>Room Type</th><th>Room No.</th><th>Check-In</th><th>Check-Out</th><th>Guests</th><th>Action</th></tr>';
                     for (var i = 0; i < bookings.length; i++) {
                         var b = bookings[i];
-                        html += '<tr><td>' + b.id + '</td><td>' + b.roomType + '</td><td>' + b.checkin + '</td><td>' + b.checkout + '</td><td>' + b.guests + '</td>';
+                        html += '<tr><td>' + b.id + '</td><td>' + b.roomType + '</td><td>' + b.roomNumber + '</td><td>' + b.checkin + '</td><td>' + b.checkout + '</td><td>' + b.guests + '</td>';
                         html += '<td><input type="button" value="Cancel" class="btn btn-small" onclick="cancelBooking(\'' + b.id + '\')"></td></tr>';
                     }
                     html += '</table>';
@@ -157,11 +158,7 @@ document.getElementById("profileForm").onsubmit = function(e) {
     xhr.send(JSON.stringify({username: user.username, name: name, phone: phone, email: email}));
 };
 
-// ============ LOGOUT ============
-document.getElementById("logoutBtn2").onclick = function() {
-    localStorage.removeItem("hotelUser");
-    window.location.href = "login.html";
-};
+// Logout handled by pages/logout.html
 </script>
 
 </body>

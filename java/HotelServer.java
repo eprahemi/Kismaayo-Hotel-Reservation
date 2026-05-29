@@ -27,7 +27,7 @@ public class HotelServer {
         File usersFile = new File(DATA_DIR + "/users.txt");
         if (!usersFile.exists()) {
             try (FileWriter fw = new FileWriter(usersFile)) {
-                fw.write("admin|admin123|Admin|000|admin@hotel.com|true\n");
+                fw.write("admin|1234|Admin|000|admin@hotel.com|true\n");
             }
         }
 
@@ -49,6 +49,10 @@ public class HotelServer {
         File contactFile = new File(DATA_DIR + "/contacts.txt");
         if (!contactFile.exists()) contactFile.createNewFile();
 
+        // room_assignments.txt (tracks which room each user occupies)
+        File roomAssignFile = new File(DATA_DIR + "/room_assignments.txt");
+        if (!roomAssignFile.exists()) roomAssignFile.createNewFile();
+
         HttpServer server = HttpServer.create(new java.net.InetSocketAddress(PORT), 0);
 
         // API endpoints
@@ -68,6 +72,8 @@ public class HotelServer {
         server.createContext("/api/stats", new StatsHandler());
         server.createContext("/api/contact", new ContactHandler());
         server.createContext("/api/availability", new AvailabilityHandler());
+        server.createContext("/api/check", new CheckFieldHandler());
+        server.createContext("/api/rooms/available", new RoomsAvailableHandler());
 
         server.createContext("/", new StaticFileHandler());
 
@@ -88,12 +94,27 @@ public class HotelServer {
                 sendJson(ex, 405, "{\"success\":false,\"error\":\"Method not allowed\"}"); return;
             }
             String body = readBody(ex);
-            String username = getJsonValue(body, "username");
+            String login = getJsonValue(body, "email");
             String password = getJsonValue(body, "password");
+
+            // Also try "username" field if "email" was empty (for backward compat)
+            if (login.isEmpty()) {
+                login = getJsonValue(body, "username");
+            }
+
+            if (login.isEmpty() || password.isEmpty()) {
+                sendJson(ex, 200, "{\"success\":false,\"error\":\"Fadlan buuxi dhammaan goobaha!\"}"); return;
+            }
+
+            if (!password.matches(".*\\d.*")) {
+                sendJson(ex, 200, "{\"success\":false,\"error\":\"Password-ku waa inuu ka kooban yahay tirooyin!\"}"); return;
+            }
 
             List<String[]> users = readUsers();
             for (String[] u : users) {
-                if (u[0].equals(username) && u[1].equals(password)) {
+                // Match by username (u[0]) OR email (u[4])
+                boolean match = u[0].equals(login) || u[4].equals(login);
+                if (match && u[1].equals(password)) {
                     String jsonUser = String.format(
                         "{\"username\":\"%s\",\"name\":\"%s\",\"phone\":\"%s\",\"email\":\"%s\",\"isAdmin\":%s}",
                         u[0], u[2], u[3], u[4], u[5]
@@ -102,7 +123,20 @@ public class HotelServer {
                     return;
                 }
             }
-            sendJson(ex, 200, "{\"success\":false,\"error\":\"Username ama password khalad!\"}");
+
+            // Check if login exists at all (by username or email) to give a better error
+            boolean foundLogin = false;
+            for (String[] u : users) {
+                if (u[0].equals(login) || u[4].equals(login)) {
+                    foundLogin = true;
+                    break;
+                }
+            }
+            if (!foundLogin) {
+                sendJson(ex, 200, "{\"success\":false,\"error\":\"Email-ka ama Username-ka lama diiwaan gelin wali ! Fadlan Register Samee.\"}");
+            } else {
+                sendJson(ex, 200, "{\"success\":false,\"error\":\"Password-ka waa khalad!\"}");
+            }
         }
     }
 
@@ -121,13 +155,39 @@ public class HotelServer {
             String phone = getJsonValue(body, "phone");
             String email = getJsonValue(body, "email");
 
-            if (username.isEmpty() || password.isEmpty()) {
-                sendJson(ex, 200, "{\"success\":false,\"error\":\"Username iyo password waa inay buuxsameyn!\"}"); return;
+            if (username.isEmpty() || password.isEmpty() || name.isEmpty() || phone.isEmpty() || email.isEmpty()) {
+                sendJson(ex, 200, "{\"success\":false,\"error\":\"Fadlan buuxi dhammaan goobaha!\"}"); return;
+            }
+
+            // Username must start with a letter
+            if (!username.matches("^[a-zA-Z].*")) {
+                sendJson(ex, 200, "{\"success\":false,\"error\":\"Username-ka waa inuu ku bilaabmaa xaraf!\"}"); return;
+            }
+
+            // Password must contain at least one number (digits-only enforced client-side)
+            if (!password.matches(".*\\d.*")) {
+                sendJson(ex, 200, "{\"success\":false,\"error\":\"Password-ku waa inuu ka kooban yahay tirooyin!\"}"); return;
+            }
+
+            // Phone must be at least 7 digits
+            if (phone.length() < 7) {
+                sendJson(ex, 200, "{\"success\":false,\"error\":\"Phone number-ku waa inuu ka kooban yahay ugu yaraan 7 lambar!\"}"); return;
+            }
+
+            // Email must contain @gmail.com
+            if (!email.contains("@gmail.com")) {
+                sendJson(ex, 200, "{\"success\":false,\"error\":\"Email-ku waa inuu yahay @gmail.com!\"}"); return;
             }
 
             for (String[] u : readUsers()) {
                 if (u[0].equals(username)) {
                     sendJson(ex, 200, "{\"success\":false,\"error\":\"Username-ka waa la isticmaalay!\"}"); return;
+                }
+                if (u[4].equals(email)) {
+                    sendJson(ex, 200, "{\"success\":false,\"error\":\"Email-ka waa la isticmaalay!\"}"); return;
+                }
+                if (u[3].equals(phone)) {
+                    sendJson(ex, 200, "{\"success\":false,\"error\":\"Phone number-ka waa la isticmaalay!\"}"); return;
                 }
             }
 
@@ -135,6 +195,72 @@ public class HotelServer {
                 fw.write(username + "|" + password + "|" + name + "|" + phone + "|" + email + "|false\n");
             }
             sendJson(ex, 200, "{\"success\":true}");
+        }
+    }
+
+    // ============================================
+    //  CHECK FIELD (real-time duplicate check)
+    // ============================================
+    static class CheckFieldHandler implements HttpHandler {
+        public void handle(HttpExchange ex) throws IOException {
+            if (!"POST".equals(ex.getRequestMethod())) {
+                sendJson(ex, 405, "{\"success\":false,\"error\":\"Method not allowed\"}"); return;
+            }
+            String body = readBody(ex);
+            String field = getJsonValue(body, "field");
+            String value = getJsonValue(body, "value");
+
+            boolean taken = false;
+            int idx = -1;
+            if (field.equals("username")) idx = 0;
+            else if (field.equals("phone")) idx = 3;
+            else if (field.equals("email")) idx = 4;
+
+            if (idx >= 0 && !value.isEmpty()) {
+                for (String[] u : readUsers()) {
+                    if (u[idx].equals(value)) {
+                        taken = true;
+                        break;
+                    }
+                }
+            }
+            sendJson(ex, 200, "{\"taken\":" + taken + "}");
+        }
+    }
+
+    // ============================================
+    //  ROOMS AVAILABLE
+    // ============================================
+    static class RoomsAvailableHandler implements HttpHandler {
+        public void handle(HttpExchange ex) throws IOException {
+            if (!"GET".equals(ex.getRequestMethod())) {
+                sendJson(ex, 405, "{\"success\":false,\"error\":\"Method not allowed\"}"); return;
+            }
+
+            List<String[]> allAssignments = readRoomAssignments();
+            int total = 30;
+            int taken = allAssignments.size();
+            int available = total - taken;
+
+            // Build list of taken room numbers
+            Set<Integer> takenSet = new HashSet<>();
+            for (String[] ra : allAssignments) {
+                try { takenSet.add(Integer.parseInt(ra[0])); } catch (Exception e) {}
+            }
+
+            StringBuilder availList = new StringBuilder("[");
+            boolean first = true;
+            for (int i = 1; i <= total; i++) {
+                if (!takenSet.contains(i)) {
+                    if (!first) availList.append(",");
+                    availList.append(i);
+                    first = false;
+                }
+            }
+            availList.append("]");
+
+            String json = "{\"total\":" + total + ",\"taken\":" + taken + ",\"available\":" + available + ",\"availableRooms\":" + availList.toString() + "}";
+            sendJson(ex, 200, json);
         }
     }
 
@@ -150,6 +276,7 @@ public class HotelServer {
             String username = getJsonValue(body, "username");
             String name = getJsonValue(body, "name");
             String roomType = getJsonValue(body, "roomType");
+            String roomNumberStr = getJsonValue(body, "roomNumber");
             String checkin = getJsonValue(body, "checkin");
             String checkout = getJsonValue(body, "checkout");
             String guests = getJsonValue(body, "guests");
@@ -157,8 +284,33 @@ public class HotelServer {
             String phone = getJsonValue(body, "phone");
             String email = getJsonValue(body, "email");
 
-            if (username.isEmpty() || roomType.isEmpty() || checkin.isEmpty() || checkout.isEmpty()) {
+            if (username.isEmpty() || roomType.isEmpty() || roomNumberStr.isEmpty() || checkin.isEmpty() || checkout.isEmpty()) {
                 sendJson(ex, 200, "{\"success\":false,\"error\":\"Fadlan buuxi dhammaan goobaha!\"}"); return;
+            }
+
+            // Validate room number 1-30
+            int roomNum;
+            try {
+                roomNum = Integer.parseInt(roomNumberStr);
+            } catch (NumberFormatException e) {
+                sendJson(ex, 200, "{\"success\":false,\"error\":\"Room number-ku waa inuu yahay 1-30!\"}"); return;
+            }
+            if (roomNum < 1 || roomNum > 30) {
+                sendJson(ex, 200, "{\"success\":false,\"error\":\"Room number-ku waa inuu yahay 1-30!\"}"); return;
+            }
+
+            // Check room is not already taken
+            for (String[] ra : readRoomAssignments()) {
+                try {
+                    if (Integer.parseInt(ra[0]) == roomNum) {
+                        sendJson(ex, 200, "{\"success\":false,\"error\":\"Room number-kan waa la qaatay!\"}"); return;
+                    }
+                } catch (Exception e) {}
+            }
+
+            // Check total bookings < 30
+            if (readRoomAssignments().size() >= 30) {
+                sendJson(ex, 200, "{\"success\":false,\"error\":\"Dhammaan rooms-ka waa buuxsameen! Fadlan isku day mar kale.\"}"); return;
             }
 
             // Hel ID-ga xiga
@@ -172,14 +324,20 @@ public class HotelServer {
                 }
             }
 
+            // Write reservation (with roomNumber as field 9)
             try (FileWriter fw = new FileWriter(DATA_DIR + "/reservations.txt", true)) {
-                fw.write(nextId + "|" + username + "|" + name + "|" + roomType + "|"
+                fw.write(nextId + "|" + username + "|" + name + "|" + roomType + "|" + roomNum + "|"
                          + checkin + "|" + checkout + "|" + guests + "|" + phone + "|" + email + "\n");
             }
 
+            // Write room assignment
+            try (FileWriter fw = new FileWriter(DATA_DIR + "/room_assignments.txt", true)) {
+                fw.write(roomNum + "|" + username + "\n");
+            }
+
             String bookingJson = String.format(
-                "{\"id\":\"%d\",\"username\":\"%s\",\"name\":\"%s\",\"roomType\":\"%s\",\"checkin\":\"%s\",\"checkout\":\"%s\",\"guests\":\"%s\",\"phone\":\"%s\",\"email\":\"%s\"}",
-                nextId, username, name, roomType, checkin, checkout, guests, phone, email
+                "{\"id\":\"%d\",\"username\":\"%s\",\"name\":\"%s\",\"roomType\":\"%s\",\"roomNumber\":\"%d\",\"checkin\":\"%s\",\"checkout\":\"%s\",\"guests\":\"%s\",\"phone\":\"%s\",\"email\":\"%s\"}",
+                nextId, username, name, roomType, roomNum, checkin, checkout, guests, phone, email
             );
             sendJson(ex, 200, "{\"success\":true,\"booking\":" + bookingJson + "}");
         }
@@ -226,9 +384,18 @@ public class HotelServer {
             for (int i = 0; i < bookings.size(); i++) {
                 String[] b = bookings.get(i);
                 if (i > 0) json.append(",");
+                // New format (10 fields): id|username|name|roomType|roomNumber|checkin|checkout|guests|phone|email
+                // Old format (9 fields):  id|username|name|roomType|checkin|checkout|guests|phone|email
+                String id = b[0], uname = b[1], name = b[2], rt = b[3];
+                String rn, ci, co, g, p, e;
+                if (b.length >= 10) {
+                    rn = b[4]; ci = b[5]; co = b[6]; g = b[7]; p = b[8]; e = b[9];
+                } else {
+                    rn = ""; ci = b[4]; co = b[5]; g = b[6]; p = b[7]; e = b[8];
+                }
                 json.append(String.format(
-                    "{\"id\":\"%s\",\"username\":\"%s\",\"name\":\"%s\",\"roomType\":\"%s\",\"checkin\":\"%s\",\"checkout\":\"%s\",\"guests\":\"%s\",\"phone\":\"%s\",\"email\":\"%s\"}",
-                    b[0], b[1], b[2], b[3], b[4], b[5], b[6], b[7], b[8]
+                    "{\"id\":\"%s\",\"username\":\"%s\",\"name\":\"%s\",\"roomType\":\"%s\",\"roomNumber\":\"%s\",\"checkin\":\"%s\",\"checkout\":\"%s\",\"guests\":\"%s\",\"phone\":\"%s\",\"email\":\"%s\"}",
+                    id, uname, name, rt, rn, ci, co, g, p, e
                 ));
             }
             json.append("]}");
@@ -260,9 +427,17 @@ public class HotelServer {
                     if (!line.trim().isEmpty()) {
                         String[] parts = line.split("\\|");
                         if (parts.length >= 9 && parts[0].equals(id)) {
+                            // New format (10 fields): id|username|name|roomType|roomNumber|checkin|checkout|guests|phone|email
+                            // Old format (9 fields):  id|username|name|roomType|checkin|checkout|guests|phone|email
+                            String rn = parts.length >= 10 ? parts[4] : "";
+                            String ci = parts.length >= 10 ? parts[5] : parts[4];
+                            String co = parts.length >= 10 ? parts[6] : parts[5];
+                            String g  = parts.length >= 10 ? parts[7] : parts[6];
+                            String p  = parts.length >= 10 ? parts[8] : parts[7];
+                            String e  = parts.length >= 10 ? parts[9] : parts[8];
                             String json = String.format(
-                                "{\"success\":true,\"booking\":{\"id\":\"%s\",\"username\":\"%s\",\"name\":\"%s\",\"roomType\":\"%s\",\"checkin\":\"%s\",\"checkout\":\"%s\",\"guests\":\"%s\",\"phone\":\"%s\",\"email\":\"%s\"}}",
-                                parts[0], parts[1], parts[2], parts[3], parts[4], parts[5], parts[6], parts[7], parts[8]
+                                "{\"success\":true,\"booking\":{\"id\":\"%s\",\"username\":\"%s\",\"name\":\"%s\",\"roomType\":\"%s\",\"roomNumber\":\"%s\",\"checkin\":\"%s\",\"checkout\":\"%s\",\"guests\":\"%s\",\"phone\":\"%s\",\"email\":\"%s\"}}",
+                                parts[0], parts[1], parts[2], parts[3], rn, ci, co, g, p, e
                             );
                             sendJson(ex, 200, json);
                             return;
@@ -529,12 +704,18 @@ public class HotelServer {
             File f = new File(DATA_DIR + "/reservations.txt");
             List<String> lines = Files.readAllLines(f.toPath());
             boolean found = false;
+            String deletedRoomNum = null;
+            String deletedUsername = null;
             StringBuilder out = new StringBuilder();
             for (String line : lines) {
                 if (line.trim().isEmpty()) continue;
                 String[] parts = line.split("\\|");
-                if (parts.length > 0 && parts[0].equals(id)) {
+                if (parts.length >= 9 && parts[0].equals(id)) {
                     found = true;
+                    if (parts.length >= 10) {
+                        deletedRoomNum = parts[4]; // roomNumber only in new format
+                    }
+                    deletedUsername = parts[1]; // username
                 } else {
                     out.append(line).append("\n");
                 }
@@ -544,9 +725,31 @@ public class HotelServer {
                 sendJson(ex, 200, "{\"success\":false,\"error\":\"Booking-ka lama helin!\"}"); return;
             }
 
+            // Remove from reservations.txt
             try (FileWriter fw = new FileWriter(DATA_DIR + "/reservations.txt")) {
                 fw.write(out.toString());
             }
+
+            // Also remove from room_assignments.txt if we found the room
+            if (deletedRoomNum != null) {
+                File raf = new File(DATA_DIR + "/room_assignments.txt");
+                List<String> raLines = Files.readAllLines(raf.toPath());
+                StringBuilder raOut = new StringBuilder();
+                for (String line : raLines) {
+                    if (line.trim().isEmpty()) continue;
+                    String[] parts = line.split("\\|");
+                    // Remove assignment for this room number
+                    if (parts.length >= 2 && parts[0].equals(deletedRoomNum)) {
+                        // skip it (free the room)
+                    } else {
+                        raOut.append(line).append("\n");
+                    }
+                }
+                try (FileWriter fw = new FileWriter(raf)) {
+                    fw.write(raOut.toString());
+                }
+            }
+
             sendJson(ex, 200, "{\"success\":true}");
         }
     }
@@ -682,6 +885,22 @@ public class HotelServer {
     // ============================================
     //  HELPERS
     // ============================================
+
+    static List<String[]> readRoomAssignments() {
+        List<String[]> assignments = new ArrayList<>();
+        File f = new File(DATA_DIR + "/room_assignments.txt");
+        if (!f.exists()) return assignments;
+        try {
+            for (String line : Files.readAllLines(f.toPath())) {
+                line = line.trim();
+                if (!line.isEmpty()) {
+                    String[] parts = line.split("\\|");
+                    if (parts.length >= 2) assignments.add(parts);
+                }
+            }
+        } catch (Exception e) {}
+        return assignments;
+    }
 
     static List<String[]> readUsers() {
         List<String[]> users = new ArrayList<>();

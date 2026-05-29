@@ -53,7 +53,7 @@ Open browser: `http://localhost:8080`
 
 ### Default Admin
 - **Username:** `admin`
-- **Password:** `admin123`
+- **Password:** `1234`
 
 ### Pages
 | Page | What it does |

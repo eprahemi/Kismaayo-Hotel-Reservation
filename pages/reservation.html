@@ -38,8 +38,11 @@ if (!localStorage.getItem("hotelUser")) {
     <a href="rooms.html">Rooms</a>
     <a href="reservation.html" class="active">Book Now</a>
     <a href="dashboard.html">Dashboard</a>
-    <a href="admin.html">Admin</a>
+    <a href="admin.html" id="adminLink">Admin</a>
+    <script>if(localStorage.hotelUser){var u=JSON.parse(localStorage.hotelUser);if(!u.isAdmin){document.getElementById('adminLink').style.display='none'}}</script>
     <a href="hotel-info.html">About</a>
+    <a href="logout.html" id="logoutLink">Logout</a>
+    <script>if(!localStorage.getItem('hotelUser')){document.getElementById('logoutLink').style.display='none'}</script>
 </td></tr>
 <tr>
 <td class="sidebar">
@@ -73,6 +76,13 @@ if (!localStorage.getItem("hotelUser")) {
         <option value="">-- Loading rooms... --</option>
     </select>
 </td></tr>
+<tr><td class="label">Room Number:</td>
+<td>
+    <select id="roomNumber" style="width:250px;">
+        <option value="">-- Loading available rooms... --</option>
+    </select>
+    <span id="roomNumberCount" style="font-size:11px; color:#888; display:block; margin-top:2px;"></span>
+</td></tr>
 </table>
 
 <h3>Stay Dates</h3>
@@ -86,7 +96,7 @@ if (!localStorage.getItem("hotelUser")) {
     </div>
     <div id="sliderPriceBox" style="display:none; background:#ecf2f5; border:1px solid #bcd; padding:6px 12px; margin-bottom:6px; font-size:14px;">
         <strong>Total:</strong> <span id="sliderTotalPrice" style="color:#08c; font-size:22px; font-weight:bold;">$0</span>
-        <span style="color:#888; font-size:12px;">(doubles each night!)</span>
+        <span style="color:#888; font-size:12px;">(price per night × nights)</span>
     </div>
 </td></tr>
 <tr><td class="label">Check-Out:</td><td><span id="checkOutDisplay" style="font-weight:bold;"></span></td></tr>
@@ -95,7 +105,7 @@ if (!localStorage.getItem("hotelUser")) {
 
 <!-- Cost Breakdown -->
 <div id="costBreakdown" style="display:none;">
-<h3>Cost Breakdown <span style="font-size:12px; color:#cc6600;">(doubles each night!)</span></h3>
+<h3>Cost Breakdown</h3>
 <table class="cost-table" id="costTable">
 <thead>
 <tr><th>Night</th><th>Cost</th><th>Running Total</th></tr>
@@ -133,7 +143,6 @@ if (!localStorage.getItem("hotelUser")) {
 
 </td>
 </tr>
-<tr><td class="footer" colspan="2">&copy; 2026 Kismaayo Hotel. All rights reserved.</td></tr>
 </table>
 
 <script>
@@ -190,6 +199,49 @@ function loadRoomTypes() {
 
 loadRoomTypes();
 
+// ===== Fetch available room numbers on page load =====
+function loadRoomNumbers() {
+    var xhr = new XMLHttpRequest();
+    xhr.open('GET', '/api/rooms/available', true);
+    xhr.onreadystatechange = function() {
+        if (xhr.readyState === 4 && xhr.status === 200) {
+            var res = JSON.parse(xhr.responseText);
+            var select = document.getElementById('roomNumber');
+            var countSpan = document.getElementById('roomNumberCount');
+            
+            countSpan.textContent = res.available + ' of ' + res.total + ' rooms available';
+            if (res.available === 0) {
+                countSpan.style.color = '#e33';
+                countSpan.textContent = '⚠️ All rooms full! No rooms available.';
+            } else if (res.available <= 5) {
+                countSpan.style.color = '#e33';
+            } else {
+                countSpan.style.color = '#080';
+            }
+            
+            select.innerHTML = '<option value="">-- Select Room Number --</option>';
+            // Show ALL rooms 1-30, disable the taken ones
+            var availSet = {};
+            if (res.availableRooms) {
+                res.availableRooms.forEach(function(r) { availSet[r] = true; });
+            }
+            for (var i = 1; i <= res.total; i++) {
+                var opt = document.createElement('option');
+                opt.value = i;
+                opt.textContent = 'Room ' + i;
+                if (!availSet[i]) {
+                    opt.disabled = true;
+                    opt.style.color = '#aaa';
+                    opt.textContent += ' (taken)';
+                }
+                select.appendChild(opt);
+            }
+        }
+    };
+    xhr.send();
+}
+loadRoomNumbers();
+
 /* Auto-select room from URL (after load) */
 var params = new URLSearchParams(window.location.search);
 var room = params.get('room');
@@ -228,13 +280,8 @@ function updatePricing() {
         checkOutDisplay.textContent = '--';
     }
 
-    // Calculate total (doubling each night)
-    var runningTotal = 0;
-    var nightCost = price;
-    for (var i = 1; i <= nights; i++) {
-        runningTotal += nightCost;
-        nightCost *= 2;
-    }
+    // Calculate total (price × nights)
+    var runningTotal = price * nights;
 
     // Update price box above the slider
     var sliderPriceBox = document.getElementById('sliderPriceBox');
@@ -259,16 +306,14 @@ function updatePricing() {
     costDiv.style.display = 'block';
     var html = '';
     var displayTotal = 0;
-    nightCost = price; // reset
 
     for (var i = 1; i <= nights; i++) {
-        displayTotal += nightCost;
+        displayTotal += price;
         html += '<tr>';
         html += '<td>Night ' + i + '</td>';
-        html += '<td>$' + nightCost.toLocaleString() + '</td>';
+        html += '<td>$' + price.toLocaleString() + '</td>';
         html += '<td>$' + displayTotal.toLocaleString() + '</td>';
         html += '</tr>';
-        nightCost *= 2;
     }
 
     // Add total row
@@ -326,22 +371,55 @@ document.getElementById("reservationForm").onsubmit = function(e) {
     var phone = document.getElementById("phone").value;
     var email = document.getElementById("email").value;
     var roomType = document.getElementById("roomType").value;
+    var roomNumber = document.getElementById("roomNumber").value;
     var checkIn = document.getElementById("checkIn").value;
     var checkOut = document.getElementById("checkOutDisplay").textContent;
     var guests = document.getElementById("guests").value;
     var errDiv = document.getElementById("bookError");
     errDiv.textContent = "";
 
-    if (!roomType || !checkIn || !checkOut || checkOut === '--') {
-        errDiv.textContent = "Fadlan buuxi Room Type, Check-In iyo Nights!";
+    if (!roomType || !roomNumber || !checkIn || !checkOut || checkOut === '--') {
+        errDiv.textContent = "Fadlan buuxi Room Type, Room Number, Check-In iyo Nights!";
         return;
     }
+
+    // Quick re-check room availability before submitting
+    var submitBtn = document.querySelector('#reservationForm input[type="submit"]');
+    submitBtn.disabled = true;
+    submitBtn.value = "Checking...";
+    var recheck = new XMLHttpRequest();
+    recheck.open('GET', '/api/rooms/available', false); // synchronous re-check
+    recheck.send();
+    try {
+        var availRes = JSON.parse(recheck.responseText);
+        var stillAvailable = false;
+        if (availRes.availableRooms) {
+            for (var k = 0; k < availRes.availableRooms.length; k++) {
+                if (availRes.availableRooms[k] == roomNumber) {
+                    stillAvailable = true;
+                    break;
+                }
+            }
+        }
+        if (!stillAvailable) {
+            errDiv.textContent = "Room number-kan waa la qaatay! Fadlan dooro mid kale.";
+            submitBtn.disabled = false;
+            submitBtn.value = "Confirm Booking";
+            loadRoomNumbers(); // refresh the list
+            return;
+        }
+    } catch (e) {}
+    submitBtn.disabled = false;
+    submitBtn.value = "Confirm Booking";
 
     var xhr = new XMLHttpRequest();
     xhr.open("POST", "/api/book", true);
     xhr.setRequestHeader("Content-Type", "application/json");
     xhr.onreadystatechange = function() {
         if (xhr.readyState === 4) {
+            var btn = document.querySelector('#reservationForm input[type="submit"]');
+            btn.disabled = false;
+            btn.value = "Confirm Booking";
             if (xhr.status === 200) {
                 var res = JSON.parse(xhr.responseText);
                 if (res.success) {
@@ -349,6 +427,7 @@ document.getElementById("reservationForm").onsubmit = function(e) {
                     window.location.href = "receipt.html?id=" + res.booking.id;
                 } else {
                     errDiv.textContent = res.error;
+                    loadRoomNumbers(); // refresh room list on failure
                 }
             } else {
                 errDiv.textContent = "Server error!";
@@ -359,6 +438,7 @@ document.getElementById("reservationForm").onsubmit = function(e) {
         username: user.username,
         name: name,
         roomType: roomType,
+        roomNumber: roomNumber,
         checkin: checkIn,
         checkout: checkOut,
         guests: guests,

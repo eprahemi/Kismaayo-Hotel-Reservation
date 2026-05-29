@@ -19,9 +19,11 @@ if (!localStorage.getItem("hotelUser")) {
     <a href="pages/rooms.html">Rooms</a>
     <a href="pages/reservation.html">Book Now</a>
     <a href="pages/dashboard.html">Dashboard</a>
-    <a href="pages/admin.html">Admin</a>
+    <a href="pages/admin.html" id="adminLink">Admin</a>
+    <script>if(localStorage.hotelUser){var u=JSON.parse(localStorage.hotelUser);if(!u.isAdmin){document.getElementById('adminLink').style.display='none'}}</script>
     <a href="pages/hotel-info.html">About</a>
-    <a href="#" id="logoutBtn">Logout</a>
+    <a href="pages/logout.html" id="logoutLink">Logout</a>
+    <script>if(!localStorage.getItem('hotelUser')){document.getElementById('logoutLink').style.display='none'}</script>
 </td></tr>
 <tr>
 <td class="sidebar">
@@ -33,7 +35,7 @@ if (!localStorage.getItem("hotelUser")) {
     <br>
     <h3>Contact</h3>
     <p style="font-size:13px; color:#555;">
-    Phone: +252 61 234 5678<br>
+    Phone: 617939022<br>
     Email: info@kismaayo.com
     </p>
 </td>
@@ -65,7 +67,6 @@ if (!localStorage.getItem("hotelUser")) {
 
 </td>
 </tr>
-<tr><td class="footer" colspan="2">&copy; 2026 Kismaayo Hotel. All rights reserved.</td></tr>
 </table>
 
 <script>
@@ -73,10 +74,7 @@ var user = JSON.parse(localStorage.getItem("hotelUser"));
 if (user) {
     document.getElementById("welcomeMsg").textContent = "Welcome, " + user.name + "!";
 }
-document.getElementById("logoutBtn").onclick = function() {
-    localStorage.removeItem("hotelUser");
-    window.location.href = "pages/login.html";
-};
+// Logout handled by pages/logout.html
 </script>
 
 </body>

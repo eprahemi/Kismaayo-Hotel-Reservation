@@ -1,8 +1,12 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
 <html>
 <head>
-    <title>Kismaayo Hotel - Sign Up</title>
+<title>Kismaayo Hotel - Register</title>
     <link rel="stylesheet" href="../css/style.css">
+<style>
+input.input-taken { border: 2px solid #e33 !important; background:#fff0f0; }
+.field-error { color:#e33; font-size:11px; font-weight:bold; display:block; margin-top:2px; }
+</style>
 </head>
 <body>
 
@@ -11,23 +15,26 @@
 <tr><td class="log-body">
 
 <div class="log-box">
-<h2 style="border-bottom:2px solid #08c; padding-bottom:8px; margin-top:0;">Create Account</h2>
+<h2 style="border-bottom:2px solid #08c; padding-bottom:8px; margin-top:0;">Register</h2>
 <p style="color:#555;">Sameyso account cusub oo bilaash ah.</p>
 
 <form id="signupForm">
 <table style="width:100%;">
 <tr><td style="padding:4px; font-weight:bold;">Username:</td>
-    <td style="padding:4px;"><input type="text" id="username" style="width:200px;"></td></tr>
+    <td style="padding:4px;"><input type="text" id="username" style="width:200px;" autocomplete="off">
+        <span class="field-error" id="usernameError"></span></td></tr>
 <tr><td style="padding:4px; font-weight:bold;">Password:</td>
-    <td style="padding:4px;"><input type="text" id="password" style="width:200px;"></td></tr>
+    <td style="padding:4px;"><input type="password" id="password" style="width:200px;" oninput="this.value=this.value.replace(/[^0-9]/g,'')"></td></tr>
 <tr><td style="padding:4px; font-weight:bold;">Full Name:</td>
     <td style="padding:4px;"><input type="text" id="fullname" style="width:200px;"></td></tr>
 <tr><td style="padding:4px; font-weight:bold;">Phone:</td>
-    <td style="padding:4px;"><input type="text" id="phone" style="width:200px;"></td></tr>
+    <td style="padding:4px;"><input type="text" id="phone" style="width:200px;" oninput="this.value=this.value.replace(/[^0-9]/g,'')">
+        <span class="field-error" id="phoneError"></span></td></tr>
 <tr><td style="padding:4px; font-weight:bold;">Email:</td>
-    <td style="padding:4px;"><input type="text" id="email" style="width:200px;"></td></tr>
+    <td style="padding:4px;"><input type="text" id="email" style="width:200px;">
+        <span class="field-error" id="emailError"></span></td></tr>
 <tr><td></td><td style="padding:4px;"><div id="signupError" class="error-msg"></div></td></tr>
-<tr><td></td><td style="padding:8px;"><input type="submit" value="Create Account" class="btn"></td></tr>
+<tr><td></td><td style="padding:8px;"><input type="submit" value="Register" class="btn"></td></tr>
 </table>
 </form>
 
@@ -38,7 +45,6 @@ Horey u lihid account? <a href="login.html" style="font-weight:bold;">Login</a>
 </div>
 
 </td></tr>
-<tr><td class="log-footer">&copy; 2026 Kismaayo Hotel. All rights reserved.</td></tr>
 </table>
 
 <script>
@@ -52,6 +58,44 @@ document.getElementById("signupForm").onsubmit = function(e) {
     var errDiv = document.getElementById("signupError");
     errDiv.textContent = "";
 
+    // All fields required
+    if (!user || !pass || !name || !phone || !email) {
+        errDiv.textContent = "Fadlan buuxi dhammaan goobaha!";
+        return;
+    }
+
+    // Username must start with a letter
+    if (!/^[a-zA-Z]/.test(user)) {
+        errDiv.textContent = "Username-ka waa inuu ku bilaabmaa xaraf!";
+        return;
+    }
+
+    // Password must contain at least one number
+    if (!/[0-9]/.test(pass)) {
+        errDiv.textContent = "Password must contain numbers! Add at least one digit.";
+        return;
+    }
+
+    // Phone must be at least 7 digits
+    if (phone.length < 7) {
+        errDiv.textContent = "Phone number must be at least 7 digits!";
+        return;
+    }
+
+    // Email must contain @gmail.com
+    if (email.indexOf("@gmail.com") === -1) {
+        errDiv.textContent = "Email must be @gmail.com!";
+        return;
+    }
+
+    // Check live duplicate errors
+    if (document.getElementById('username').classList.contains('input-taken') ||
+        document.getElementById('phone').classList.contains('input-taken') ||
+        document.getElementById('email').classList.contains('input-taken')) {
+        errDiv.textContent = "Fix the red fields above first!";
+        return;
+    }
+
     var xhr = new XMLHttpRequest();
     xhr.open("POST", "/api/signup", true);
     xhr.setRequestHeader("Content-Type", "application/json");
@@ -60,7 +104,7 @@ document.getElementById("signupForm").onsubmit = function(e) {
             if (xhr.status === 200) {
                 var res = JSON.parse(xhr.responseText);
                 if (res.success) {
-                    alert("Account created! Now login.");
+                    alert("Waa La Sameeye Account. Hadda Login Samee");
                     window.location.href = "login.html";
                 } else {
                     errDiv.textContent = res.error;
@@ -72,6 +116,68 @@ document.getElementById("signupForm").onsubmit = function(e) {
     };
     xhr.send(JSON.stringify({username: user, password: pass, name: name, phone: phone, email: email}));
 };
+
+// ===== Password reveal in-place =====
+(function() {
+    var pw = document.getElementById('password');
+    if (!pw) return;
+    var timer = null;
+    pw.addEventListener('input', function() {
+        clearTimeout(timer);
+        this.type = 'text';
+        timer = setTimeout(function() {
+            if (pw) pw.type = 'password';
+        }, 200);
+    });
+    pw.addEventListener('blur', function() {
+        clearTimeout(timer);
+        if (pw) pw.type = 'password';
+    });
+})();
+
+// ===== Real-time duplicate check =====
+(function() {
+    var fields = ['username', 'phone', 'email'];
+    var timers = {};
+    
+    function checkField(field) {
+        var input = document.getElementById(field);
+        var errSpan = document.getElementById(field + 'Error');
+        var val = input.value.trim();
+        
+        if (!val) {
+            input.classList.remove('input-taken');
+            errSpan.textContent = '';
+            return;
+        }
+        
+        var xhr = new XMLHttpRequest();
+        xhr.open('POST', '/api/check', true);
+        xhr.setRequestHeader('Content-Type', 'application/json');
+        xhr.onreadystatechange = function() {
+            if (xhr.readyState === 4 && xhr.status === 200) {
+                var res = JSON.parse(xhr.responseText);
+                if (res.taken) {
+                    input.classList.add('input-taken');
+                    errSpan.textContent = 'Waa la qaatay';
+                } else {
+                    input.classList.remove('input-taken');
+                    errSpan.textContent = '';
+                }
+            }
+        };
+        xhr.send(JSON.stringify({field: field, value: val}));
+    }
+    
+    fields.forEach(function(f) {
+        var input = document.getElementById(f);
+        if (!input) return;
+        input.addEventListener('input', function() {
+            clearTimeout(timers[f]);
+            timers[f] = setTimeout(function() { checkField(f); }, 400);
+        });
+    });
+})();
 </script>
 
 </body>

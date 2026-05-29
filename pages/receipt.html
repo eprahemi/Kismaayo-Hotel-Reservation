@@ -60,8 +60,11 @@ if (!localStorage.getItem("hotelUser")) {
     <a href="rooms.html">Rooms</a>
     <a href="reservation.html">Book Now</a>
     <a href="dashboard.html">Dashboard</a>
-    <a href="admin.html">Admin</a>
+    <a href="admin.html" id="adminLink">Admin</a>
+    <script>if(localStorage.hotelUser){var u=JSON.parse(localStorage.hotelUser);if(!u.isAdmin){document.getElementById('adminLink').style.display='none'}}</script>
     <a href="hotel-info.html">About</a>
+    <a href="logout.html" id="logoutLink">Logout</a>
+    <script>if(!localStorage.getItem('hotelUser')){document.getElementById('logoutLink').style.display='none'}</script>
 </td></tr>
 <tr>
 <td class="sidebar no-print">
@@ -86,7 +89,6 @@ if (!localStorage.getItem("hotelUser")) {
 
 </td>
 </tr>
-<tr><td class="footer" colspan="2">&copy; 2026 Kismaayo Hotel. All rights reserved.</td></tr>
 </table>
 
 <script>
@@ -113,6 +115,7 @@ function loadReceipt() {
                 html += '<tr><td class="label">Reservation ID:</td><td>' + b.id + '</td></tr>';
                 html += '<tr><td class="label">Guest Name:</td><td>' + b.name + '</td></tr>';
                 html += '<tr><td class="label">Room Type:</td><td>' + b.roomType + '</td></tr>';
+                html += '<tr><td class="label">Room Number:</td><td>' + b.roomNumber + '</td></tr>';
                 html += '<tr><td class="label">Check-In:</td><td>' + b.checkin + '</td></tr>';
                 html += '<tr><td class="label">Check-Out:</td><td>' + b.checkout + '</td></tr>';
                 html += '<tr><td class="label">Guests:</td><td>' + b.guests + '</td></tr>';
@@ -121,7 +124,7 @@ function loadReceipt() {
                 html += '</table>';
                 html += '<div class="receipt-footer">';
                 html += 'Kismaayo Hotel - Kismaayo, Somalia<br>';
-                html += 'Phone: +252 61 234 5678 | Email: info@kismaayohotel.com';
+                html += 'Phone: 617939022 | Email: info@kismaayohotel.com';
                 html += '</div>';
                 html += '</div>';
                 document.getElementById("receiptContent").innerHTML = html;

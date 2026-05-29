@@ -70,7 +70,7 @@ public class User {
             File file = new File("../data/users.txt");
             if (!file.exists()) {
                 /* Haddii uusan jirin fayl, abuur admin default ah */
-                users.add(new User("admin", "admin123", "Admin", "000", "admin@hotel.com", true));
+                users.add(new User("admin", "1234", "Admin", "000", "admin@hotel.com", true));
                 saveUsers(users);
                 return users;
             }

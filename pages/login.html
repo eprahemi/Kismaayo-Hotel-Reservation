@@ -3,6 +3,7 @@
 <head>
     <title>Kismaayo Hotel - Login</title>
     <link rel="stylesheet" href="../css/style.css">
+
 </head>
 <body>
 
@@ -22,10 +23,10 @@ if (localStorage.getItem("hotelUser")) {
 
 <form id="loginForm">
 <table style="width:100%;">
-<tr><td style="padding:5px; font-weight:bold;">Username:</td>
-    <td style="padding:5px;"><input type="text" id="username" style="width:200px;"></td></tr>
+<tr><td style="padding:5px; font-weight:bold;">Email / Username:</td>
+    <td style="padding:5px;"><input type="text" id="email" style="width:200px;"></td></tr>
 <tr><td style="padding:5px; font-weight:bold;">Password:</td>
-    <td style="padding:5px;"><input type="text" id="password" style="width:200px;"></td></tr>
+    <td style="padding:5px;"><input type="password" id="password" style="width:200px;" oninput="this.value=this.value.replace(/[^0-9]/g,'')"></td></tr>
 <tr><td></td><td style="padding:5px;"><div id="loginError" class="error-msg"></div></td></tr>
 <tr><td></td><td style="padding:8px;"><input type="submit" value="Login" class="btn"></td></tr>
 </table>
@@ -33,24 +34,35 @@ if (localStorage.getItem("hotelUser")) {
 
 <br>
 <p style="font-size:14px; color:#888; text-align:center;">
-Ma lihid account? <a href="signup.html" style="font-weight:bold;">Sign Up</a>
+Ma lihid account? <a href="signup.html" style="font-weight:bold;">Register</a>
 </p>
 <p style="font-size:12px; color:#aaa; text-align:center;">
-Admin: admin / admin123
+Admin: admin / 1234
 </p>
 </div>
 
 </td></tr>
-<tr><td class="log-footer">&copy; 2026 Kismaayo Hotel. All rights reserved.</td></tr>
 </table>
 
 <script>
 document.getElementById("loginForm").onsubmit = function(e) {
     e.preventDefault();
-    var user = document.getElementById("username").value;
+    var email = document.getElementById("email").value;
     var pass = document.getElementById("password").value;
     var errDiv = document.getElementById("loginError");
     errDiv.textContent = "";
+
+    // All fields required
+    if (!email || !pass) {
+        errDiv.textContent = "Fadlan buuxi dhammaan goobaha!";
+        return;
+    }
+
+    // Password must contain at least one number
+    if (!/[0-9]/.test(pass)) {
+        errDiv.textContent = "Password must contain numbers! Add at least one digit.";
+        return;
+    }
 
     var xhr = new XMLHttpRequest();
     xhr.open("POST", "/api/login", true);
@@ -70,8 +82,26 @@ document.getElementById("loginForm").onsubmit = function(e) {
             }
         }
     };
-    xhr.send(JSON.stringify({username: user, password: pass}));
+    xhr.send(JSON.stringify({email: email, password: pass}));
 };
+
+// ===== Password reveal in-place =====
+(function() {
+    var pw = document.getElementById('password');
+    if (!pw) return;
+    var timer = null;
+    pw.addEventListener('input', function() {
+        clearTimeout(timer);
+        this.type = 'text';
+        timer = setTimeout(function() {
+            if (pw) pw.type = 'password';
+        }, 200);
+    });
+    pw.addEventListener('blur', function() {
+        clearTimeout(timer);
+        if (pw) pw.type = 'password';
+    });
+})();
 </script>
 
 </body>

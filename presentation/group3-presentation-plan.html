@@ -984,7 +984,7 @@ const oopConcepts = [
 ];
 
 const features = [
-  {icon:"🎚️",name:"Doubling Pricing Slider",desc:"1–30 nights · price doubles each night · live cost breakdown"},
+  {icon:"🎚️",name:"Interactive Pricing Slider",desc:"1–30 nights · live cost breakdown · total = nights × price"},
   {icon:"🧾",name:"Printable Receipt",desc:"Auto-generated after booking · print-friendly layout"},
   {icon:"📊",name:"User Dashboard",desc:"View bookings · cancel · edit profile in one place"},
   {icon:"⚙️",name:"Admin Panel",desc:"Manage rooms, users, and all bookings"},
@@ -1006,7 +1006,7 @@ const qaData = [
   {q:"Why .txt files, not a database?",a:"Simple — no setup needed. Clearly demonstrates File I/O. Easy for the teacher to inspect."},
   {q:"How does login work?",a:"JS sends POST → server reads users.txt → compares credentials → returns JSON success/fail."},
   {q:"What OOP concepts are used?",a:"Inheritance (Room→StandardRoom), encapsulation (private fields), polymorphism (override), constructor overloading."},
-  {q:"How does the slider pricing work?",a:"Each night doubles: nightCost *= 2 in a loop. Total = basePrice × (2^n - 1)."},
+  {q:"How does the slider pricing work?",a:"Simple: total = price per night × number of nights. The cost breakdown table shows each night's cost clearly."},
   {q:"How do you prevent double booking?",a:"AvailabilityHandler checks: checkin &lt; existCheckout &amp;&amp; checkout &gt; existCheckin."},
   {q:"Why 2007-era design?",a:"Assignment constraint: table layout, no flexbox/grid, no CSS frameworks, no JavaScript libraries."},
   {q:"How does the server serve files?",a:"StaticFileHandler maps URL paths to file system. If not found in root, checks /pages/ folder."}

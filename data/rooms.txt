@@ -1,3 +1,4 @@
 Standard|50|AC,WiFi,TV,Free Parking
 Deluxe|80|AC,WiFi,TV,Mini Bar,Breakfast
 Suite|120|AC,WiFi,TV,Jacuzzi,Breakfast,Room Service 24/7
+VIP SHAALE|1000|ALL VIP STUFF
