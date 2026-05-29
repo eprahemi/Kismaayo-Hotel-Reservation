@@ -622,6 +622,25 @@ public class HotelServer {
             }
 
             List<String[]> users = readUsers();
+
+            // Check for duplicate email (exclude current user)
+            if (!email.isEmpty()) {
+                for (String[] u : users) {
+                    if (!u[0].equals(username) && u[4].equals(email)) {
+                        sendJson(ex, 200, "{\"success\":false,\"error\":\"Email-ka waa la isticmaalay!\"}"); return;
+                    }
+                }
+            }
+
+            // Check for duplicate phone (exclude current user)
+            if (!phone.isEmpty()) {
+                for (String[] u : users) {
+                    if (!u[0].equals(username) && u[3].equals(phone)) {
+                        sendJson(ex, 200, "{\"success\":false,\"error\":\"Phone number-ka waa la isticmaalay!\"}"); return;
+                    }
+                }
+            }
+
             boolean found = false;
             StringBuilder out = new StringBuilder();
             for (String[] u : users) {
