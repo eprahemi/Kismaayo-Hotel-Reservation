@@ -61,6 +61,16 @@ if (!localStorage.getItem("hotelUser")) {
 </form>
 </div>
 
+<br>
+
+<!-- =========== DELETE ACCOUNT =========== -->
+<div class="info-box" style="border-color:#e33;">
+<h3 style="color:#cc0000;">Delete Account</h3>
+<p style="color:#888; font-size:13px;">Tirtir account-kaaga iyo dhammaan xogtaada. Kama laaban kartid!</p>
+<div id="deleteError" class="error-msg" style="margin-bottom:6px;"></div>
+<input type="button" value="Delete My Account" class="btn" style="background:#cc0000; color:#fff;" onclick="deleteMyAccount()">
+</div>
+
 </td>
 </tr>
 </table>
@@ -159,6 +169,34 @@ document.getElementById("profileForm").onsubmit = function(e) {
 };
 
 // Logout handled by pages/logout.html
+
+// ============ DELETE MY ACCOUNT ============
+function deleteMyAccount() {
+    if (!confirm("Ma hubtaa inaa delete gareeso accountigaaga ?") ||
+        !confirm("Ma hubtaa inaa delete gareeso accountigaaga ?")) {
+        return;
+    }
+
+    var errDiv = document.getElementById("deleteError");
+    errDiv.textContent = "";
+
+    var xhr = new XMLHttpRequest();
+    xhr.open("POST", "/api/users/delete", true);
+    xhr.setRequestHeader("Content-Type", "application/json");
+    xhr.onreadystatechange = function() {
+        if (xhr.readyState === 4 && xhr.status === 200) {
+            var res = JSON.parse(xhr.responseText);
+            if (res.success) {
+                localStorage.removeItem("hotelUser");
+                alert("Account-gaa waa la tirtiray!");
+                window.location.href = "login.html";
+            } else {
+                errDiv.textContent = res.error;
+            }
+        }
+    };
+    xhr.send(JSON.stringify({username: user.username}));
+}
 </script>
 
 </body>
