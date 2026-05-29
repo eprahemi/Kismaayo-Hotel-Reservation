@@ -1,6 +1,6 @@
 # 🏨 Kismaayo Hotel Reservation System
 ## 🎤 Complete Solo Presentation Map · 30–40 Minutes
-### 👤 Presenter: You · 👥 Audience: Teachers & Students · 📅 Semester 6, 2026
+### 👤 Presenter: You · 👥 Audience: Teachers & Students · 📅 30th May 2026 · Semester 6
 
 ---
 
@@ -1070,12 +1070,12 @@ Email:    [ali@gmail.com           ] ⚠️ Waa la qaatay  ← Red border
 ║  └──────────┴──────────┴──────────────┘                     ║
 ║                                                             ║
 ║  🏠 MANAGE ROOMS:                                           ║
-║  [Room Name] [Price] [Amenities] [Add Room]                ║
-║  ┌──────────┬───────┬──────────────────────┬────────┐      ║
-║  │ Standard │ $50   │ AC,WiFi,TV           │ Delete │      ║
-║  │ Deluxe   │ $80   │ AC,WiFi,TV,Mini Bar  │ Delete │      ║
-║  │ Suite    │ $120  │ AC,WiFi,TV,Jacuzzi   │ Delete │      ║
-║  └──────────┴───────┴──────────────────────┴────────┘      ║
+║  [Room Name] [Price] [Amenities] [Add Room]                 ║
+║  ┌──────────┬───────┬──────────────────────┬────────┐       ║
+║  │ Standard │ $50   │ AC,WiFi,TV           │ Delete │       ║
+║  │ Deluxe   │ $80   │ AC,WiFi,TV,Mini Bar  │ Delete │       ║
+║  │ Suite    │ $120  │ AC,WiFi,TV,Jacuzzi   │ Delete │       ║
+║  └──────────┴───────┴──────────────────────┴────────┘       ║
 ║                                                             ║
 ║  👥 ALL USERS:                                              ║
 ║  ┌──────────┬──────┬──────────┬────────────────┬──────┬───┐ ║
@@ -1420,7 +1420,7 @@ git add -A && git commit -m "message" && git push
 ║                                                                 ║
 ║  "Kismaayo Hotel — Where Code Meets Comfort 🏨"                ║
 ║                                                                 ║
-║  University of Kismaayo · Semester 6 · 2026                    ║
+║  University of Kismaayo · 30th May 2026 · Semester 6           ║
 ║  Java Programming II · Group 3                                  ║
 ╚══════════════════════════════════════════════════════════════════╝
 ```
