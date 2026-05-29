@@ -182,8 +182,9 @@ function deleteRoom(name) {
         if (xhr.readyState === 4 && xhr.status === 200) {
             var res = JSON.parse(xhr.responseText);
             if (res.success) {
-                loadRooms();
+                loadUsers();
                 loadStats();
+                loadAllBookings();
             } else {
                 alert(res.error);
             }
@@ -201,16 +202,24 @@ function loadUsers() {
             var res = JSON.parse(xhr.responseText);
             if (res.success) {
                 var users = res.users;
+                var currentUser = JSON.parse(localStorage.getItem("hotelUser"));
+                var currentUsername = currentUser ? currentUser.username : '';
                 var html = '<table class="data-table"><tr><th>Username</th><th>Name</th><th>Phone</th><th>Email</th><th>Role</th><th>Action</th></tr>';
                 for (var i = 0; i < users.length; i++) {
                     var role = users[i].isAdmin === "true" ? "Admin" : "User";
                     var color = users[i].isAdmin === "true" ? "#08c" : "#555";
                     var u = users[i];
+                    var isSelf = u.username === currentUsername;
                     html += '<tr><td>' + u.username + '</td><td>' + u.name + '</td><td>' + u.phone + '</td><td>' + u.email + '</td><td style="color:' + color + ';font-weight:bold;">' + role + '</td>';
                     html += '<td>';
-                    html += '<input type="button" value="Edit" class="btn btn-small" onclick="editUser(\'' + u.username.replace(/'/g, "\\'") + '\',\'' + u.name.replace(/'/g, "\\'") + '\',\'' + u.phone.replace(/'/g, "\\'") + '\',\'' + u.email.replace(/'/g, "\\'") + '\')"> ';
-                    if (u.isAdmin !== "true") {
+                    if (!isSelf) {
+                        html += '<input type="button" value="Edit" class="btn btn-small" onclick="editUser(\'' + u.username.replace(/'/g, "\\'") + '\',\'' + u.name.replace(/'/g, "\\'") + '\',\'' + u.phone.replace(/'/g, "\\'") + '\',\'' + u.email.replace(/'/g, "\\'") + '\')"> ';
+                    }
+                    if (!isSelf && u.isAdmin !== "true") {
                         html += '<input type="button" value="Delete" class="btn btn-small" onclick="deleteUser(\'' + u.username.replace(/'/g, "\\'") + '\')">';
+                    }
+                    if (isSelf) {
+                        html += '<span style="color:#888;font-size:12px;">(you)</span>';
                     }
                     html += '</td></tr>';
                 }
@@ -261,6 +270,7 @@ function deleteUser(username) {
             if (res.success) {
                 loadUsers();
                 loadStats();
+                loadAllBookings();
             } else {
                 alert(res.error);
             }

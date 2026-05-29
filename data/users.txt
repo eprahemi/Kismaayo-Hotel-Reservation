@@ -1,3 +1,2 @@
 admin|1234|Admin|111|admin@a.com|true
 eprahemi|1234|Ibraahim Yuusuf|617939022|fsownstarnew@gmail.com|false
-mohamed|1234|Mohamed Hassan|611126276|mohamed123@gmail.com|false

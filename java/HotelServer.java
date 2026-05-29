@@ -530,14 +530,24 @@ public class HotelServer {
             String body = readBody(ex);
             String username = getJsonValue(body, "username");
 
+            // Prevent deleting admin accounts
+            if (username.equals("admin")) {
+                sendJson(ex, 200, "{\"success\":false,\"error\":\"Ma tilmaami kartid Admin-ka!\"}"); return;
+            }
+
+            // ====== Remove from users.txt ======
             List<String[]> users = readUsers();
             boolean found = false;
-            StringBuilder out = new StringBuilder();
+            StringBuilder userOut = new StringBuilder();
             for (String[] u : users) {
                 if (u[0].equals(username)) {
+                    // Also prevent deleting any user who has isAdmin=true
+                    if (u.length >= 6 && u[5].equals("true")) {
+                        sendJson(ex, 200, "{\"success\":false,\"error\":\"Ma tilmaami kartid Admin-ka!\"}"); return;
+                    }
                     found = true;
                 } else {
-                    out.append(String.join("|", u)).append("\n");
+                    userOut.append(String.join("|", u)).append("\n");
                 }
             }
 
@@ -546,8 +556,49 @@ public class HotelServer {
             }
 
             try (FileWriter fw = new FileWriter(DATA_DIR + "/users.txt")) {
-                fw.write(out.toString());
+                fw.write(userOut.toString());
             }
+
+            // ====== Remove all bookings by this user from reservations.txt ======
+            File resFile = new File(DATA_DIR + "/reservations.txt");
+            if (resFile.exists()) {
+                List<String> resLines = Files.readAllLines(resFile.toPath());
+                StringBuilder resOut = new StringBuilder();
+                for (String line : resLines) {
+                    if (line.trim().isEmpty()) continue;
+                    String[] parts = line.split("\\|");
+                    // reservations format: id|username|name|roomType|roomNumber?|checkin|...
+                    if (parts.length >= 2 && parts[1].equals(username)) {
+                        // skip — delete this booking
+                    } else {
+                        resOut.append(line).append("\n");
+                    }
+                }
+                try (FileWriter fw = new FileWriter(resFile)) {
+                    fw.write(resOut.toString());
+                }
+            }
+
+            // ====== Remove all room assignments by this user ======
+            File raFile = new File(DATA_DIR + "/room_assignments.txt");
+            if (raFile.exists()) {
+                List<String> raLines = Files.readAllLines(raFile.toPath());
+                StringBuilder raOut = new StringBuilder();
+                for (String line : raLines) {
+                    if (line.trim().isEmpty()) continue;
+                    String[] parts = line.split("\\|");
+                    // room_assignments format: roomNum|username
+                    if (parts.length >= 2 && parts[1].equals(username)) {
+                        // skip — free this room
+                    } else {
+                        raOut.append(line).append("\n");
+                    }
+                }
+                try (FileWriter fw = new FileWriter(raFile)) {
+                    fw.write(raOut.toString());
+                }
+            }
+
             sendJson(ex, 200, "{\"success\":true}");
         }
     }
