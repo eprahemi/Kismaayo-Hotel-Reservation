@@ -64,7 +64,7 @@ if (!localStorage.getItem("hotelUser")) {
 <br>
 
 <!-- =========== DELETE ACCOUNT =========== -->
-<div class="info-box" style="border-color:#e33;">
+<div class="info-box" style="border-color:#e33;" id="deleteAccountSection">
 <h3 style="color:#cc0000;">Delete Account</h3>
 <p style="color:#888; font-size:13px;">Tirtir account-kaaga iyo dhammaan xogtaada. Kama laaban kartid!</p>
 <div id="deleteError" class="error-msg" style="margin-bottom:6px;"></div>
@@ -82,6 +82,11 @@ if (user) {
     document.getElementById("profName").value = user.name || "";
     document.getElementById("profPhone").value = user.phone || "";
     document.getElementById("profEmail").value = user.email || "";
+    // Hide "Delete My Account" for admins
+    if (user.isAdmin) {
+        var delSec = document.getElementById("deleteAccountSection");
+        if (delSec) delSec.style.display = "none";
+    }
 }
 
 // ============ LOAD BOOKINGS ============

@@ -878,9 +878,17 @@ public class HotelServer {
                     if (!line.trim().isEmpty()) {
                         String[] parts = line.split("\\|");
                         if (parts.length >= 6 && parts[3].equalsIgnoreCase(roomType)) {
-                            // Hubi haddii uu jiro booking isku waqti ah
-                            String existCheckin = parts[4];
-                            String existCheckout = parts[5];
+                            // Handle both old (9-field) and new (10-field) format
+                            // Old: id|username|name|roomType|checkin|checkout|...
+                            // New: id|username|name|roomType|roomNumber|checkin|checkout|...
+                            String existCheckin, existCheckout;
+                            if (parts.length >= 10) {
+                                existCheckin = parts[5];
+                                existCheckout = parts[6];
+                            } else {
+                                existCheckin = parts[4];
+                                existCheckout = parts[5];
+                            }
                             // Check overlap: (checkin < existCheckout) && (checkout > existCheckin)
                             if (checkin.compareTo(existCheckout) < 0 && checkout.compareTo(existCheckin) > 0) {
                                 available = false;
