@@ -1,0 +1,328 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+    <title>Kismaayo Hotel - Admin</title>
+    <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+
+<script>
+if (!localStorage.getItem("hotelUser")) {
+    window.location.href = "login.html";
+}
+var user = JSON.parse(localStorage.getItem("hotelUser"));
+if (!user.isAdmin) {
+    window.location.href = "../index.html";
+}
+</script>
+
+<table class="layout">
+<tr><td class="header" colspan="2">Kismaayo Hotel - Admin Panel</td></tr>
+<tr><td class="nav" colspan="2">
+    <a href="../index.html">Home</a>
+    <a href="rooms.html">Rooms</a>
+    <a href="reservation.html">Book Now</a>
+    <a href="dashboard.html">Dashboard</a>
+    <a href="admin.html" class="active">Admin</a>
+    <a href="hotel-info.html">About</a>
+</td></tr>
+<tr>
+<td class="sidebar">
+    <h3>Admin Tools</h3>
+    <a href="#stats">Dashboard Stats</a>
+    <a href="#rooms">Manage Rooms</a>
+    <a href="#users">All Users</a>
+    <a href="#bookings">All Bookings</a>
+</td>
+<td class="content">
+
+<h2>Admin Panel</h2>
+
+<!-- ============= STATS ============= -->
+<div class="info-box" id="stats">
+<h3>Dashboard Stats</h3>
+<table class="room-table">
+<tr>
+<td style="width:33%; text-align:center; background:#ecf2f5;">
+    <h2 id="statUsers" style="font-size:36px; margin:0;">-</h2>
+    <p style="color:#555;">Total Users</p>
+</td>
+<td style="width:33%; text-align:center; background:#ecf2f5;">
+    <h2 id="statRooms" style="font-size:36px; margin:0;">-</h2>
+    <p style="color:#555;">Room Types</p>
+</td>
+<td style="width:33%; text-align:center; background:#ecf2f5;">
+    <h2 id="statBookings" style="font-size:36px; margin:0;">-</h2>
+    <p style="color:#555;">Total Bookings</p>
+</td>
+</tr>
+</table>
+</div>
+<br>
+
+<!-- ============= MANAGE ROOMS ============= -->
+<div class="info-box" id="rooms">
+<h3>Manage Room Types</h3>
+
+<table class="form-table" style="width:100%;">
+<tr><td class="label">Room Name:</td><td><input type="text" id="roomName" style="width:200px;"></td></tr>
+<tr><td class="label">Price/Night:</td><td><input type="text" id="roomPrice" style="width:200px;"></td></tr>
+<tr><td class="label">Amenities:</td><td><input type="text" id="roomAmenities" style="width:300px;" placeholder="AC,WiFi,TV,..."></td></tr>
+<tr><td></td><td><input type="button" value="Add Room" class="btn" onclick="addRoom()"> <span id="roomMsg" style="color:green;font-size:13px;"></span></td></tr>
+</table>
+
+<div id="roomList">
+<p style="color:#888;">Loading rooms...</p>
+</div>
+</div>
+<br>
+
+<!-- ============= ALL USERS ============= -->
+<div class="info-box" id="users">
+<h3>All Registered Users</h3>
+<div id="userList">
+<p style="color:#888;">Loading users...</p>
+</div>
+</div>
+<br>
+
+<!-- ============= ALL BOOKINGS ============= -->
+<div class="info-box" id="bookings">
+<h3>All Bookings</h3>
+<div id="allBookingsList">
+<p style="color:#888;">Loading bookings...</p>
+</div>
+</div>
+
+</td>
+</tr>
+<tr><td class="footer" colspan="2">&copy; 2026 Kismaayo Hotel. All rights reserved.</td></tr>
+</table>
+
+<script>
+// ============ LOAD STATS ============
+function loadStats() {
+    var xhr = new XMLHttpRequest();
+    xhr.open("GET", "/api/stats", true);
+    xhr.onreadystatechange = function() {
+        if (xhr.readyState === 4 && xhr.status === 200) {
+            var res = JSON.parse(xhr.responseText);
+            if (res.success) {
+                document.getElementById("statUsers").textContent = res.stats.totalUsers;
+                document.getElementById("statRooms").textContent = res.stats.totalRooms;
+                document.getElementById("statBookings").textContent = res.stats.totalBookings;
+            }
+        }
+    };
+    xhr.send();
+}
+
+// ============ LOAD ROOMS ============
+function loadRooms() {
+    var xhr = new XMLHttpRequest();
+    xhr.open("GET", "/api/rooms", true);
+    xhr.onreadystatechange = function() {
+        if (xhr.readyState === 4 && xhr.status === 200) {
+            var res = JSON.parse(xhr.responseText);
+            if (res.success) {
+                var rooms = res.rooms;
+                var html = '<table class="data-table"><tr><th>Room Type</th><th>Price/Night</th><th>Amenities</th><th>Action</th></tr>';
+                for (var i = 0; i < rooms.length; i++) {
+                    html += '<tr><td>' + rooms[i].name + '</td><td>$' + rooms[i].price + '</td><td>' + (rooms[i].amenities || '-') + '</td>';
+                    html += '<td><input type="button" value="Delete" class="btn btn-small" onclick="deleteRoom(\'' + rooms[i].name.replace(/'/g, "\\'") + '\')"></td></tr>';
+                }
+                html += '</table>';
+                document.getElementById("roomList").innerHTML = html;
+            }
+        }
+    };
+    xhr.send();
+}
+
+// ============ ADD ROOM ============
+function addRoom() {
+    var name = document.getElementById("roomName").value;
+    var price = document.getElementById("roomPrice").value;
+    var amenities = document.getElementById("roomAmenities").value;
+    var msg = document.getElementById("roomMsg");
+    msg.textContent = "";
+
+    if (!name || !price) { msg.textContent = "Fill Room Name and Price!"; return; }
+
+    var xhr = new XMLHttpRequest();
+    xhr.open("POST", "/api/rooms/add", true);
+    xhr.setRequestHeader("Content-Type", "application/json");
+    xhr.onreadystatechange = function() {
+        if (xhr.readyState === 4 && xhr.status === 200) {
+            var res = JSON.parse(xhr.responseText);
+            if (res.success) {
+                msg.textContent = "Room added!";
+                document.getElementById("roomName").value = "";
+                document.getElementById("roomPrice").value = "";
+                document.getElementById("roomAmenities").value = "";
+                loadRooms();
+                loadStats();
+            } else {
+                msg.textContent = res.error;
+            }
+        }
+    };
+    xhr.send(JSON.stringify({name: name, price: price, amenities: amenities}));
+}
+
+// ============ DELETE ROOM ============
+function deleteRoom(name) {
+    if (!confirm("Delete room '" + name + "'?")) return;
+
+    var xhr = new XMLHttpRequest();
+    xhr.open("POST", "/api/rooms/delete", true);
+    xhr.setRequestHeader("Content-Type", "application/json");
+    xhr.onreadystatechange = function() {
+        if (xhr.readyState === 4 && xhr.status === 200) {
+            var res = JSON.parse(xhr.responseText);
+            if (res.success) {
+                loadRooms();
+                loadStats();
+            } else {
+                alert(res.error);
+            }
+        }
+    };
+    xhr.send(JSON.stringify({name: name}));
+}
+
+// ============ LOAD USERS ============
+function loadUsers() {
+    var xhr = new XMLHttpRequest();
+    xhr.open("GET", "/api/users", true);
+    xhr.onreadystatechange = function() {
+        if (xhr.readyState === 4 && xhr.status === 200) {
+            var res = JSON.parse(xhr.responseText);
+            if (res.success) {
+                var users = res.users;
+                var html = '<table class="data-table"><tr><th>Username</th><th>Name</th><th>Phone</th><th>Email</th><th>Role</th><th>Action</th></tr>';
+                for (var i = 0; i < users.length; i++) {
+                    var role = users[i].isAdmin === "true" ? "Admin" : "User";
+                    var color = users[i].isAdmin === "true" ? "#08c" : "#555";
+                    var u = users[i];
+                    html += '<tr><td>' + u.username + '</td><td>' + u.name + '</td><td>' + u.phone + '</td><td>' + u.email + '</td><td style="color:' + color + ';font-weight:bold;">' + role + '</td>';
+                    html += '<td>';
+                    html += '<input type="button" value="Edit" class="btn btn-small" onclick="editUser(\'' + u.username.replace(/'/g, "\\'") + '\',\'' + u.name.replace(/'/g, "\\'") + '\',\'' + u.phone.replace(/'/g, "\\'") + '\',\'' + u.email.replace(/'/g, "\\'") + '\')"> ';
+                    if (u.isAdmin !== "true") {
+                        html += '<input type="button" value="Delete" class="btn btn-small" onclick="deleteUser(\'' + u.username.replace(/'/g, "\\'") + '\')">';
+                    }
+                    html += '</td></tr>';
+                }
+                html += '</table>';
+                document.getElementById("userList").innerHTML = html;
+            }
+        }
+    };
+    xhr.send();
+}
+
+// ============ EDIT USER (inline prompt) ============
+function editUser(username, currName, currPhone, currEmail) {
+    var newName = prompt("Full Name for " + username + ":", currName);
+    if (newName === null) return;
+    var newPhone = prompt("Phone for " + username + ":", currPhone);
+    if (newPhone === null) return;
+    var newEmail = prompt("Email for " + username + ":", currEmail);
+    if (newEmail === null) return;
+
+    var xhr = new XMLHttpRequest();
+    xhr.open("POST", "/api/users/update", true);
+    xhr.setRequestHeader("Content-Type", "application/json");
+    xhr.onreadystatechange = function() {
+        if (xhr.readyState === 4 && xhr.status === 200) {
+            var res = JSON.parse(xhr.responseText);
+            if (res.success) {
+                loadUsers();
+                loadStats();
+            } else {
+                alert(res.error);
+            }
+        }
+    };
+    xhr.send(JSON.stringify({username: username, name: newName, phone: newPhone, email: newEmail}));
+}
+
+// ============ DELETE USER ============
+function deleteUser(username) {
+    if (!confirm("Ma hubtaa inaad tirtirto user '" + username + "'?")) return;
+
+    var xhr = new XMLHttpRequest();
+    xhr.open("POST", "/api/users/delete", true);
+    xhr.setRequestHeader("Content-Type", "application/json");
+    xhr.onreadystatechange = function() {
+        if (xhr.readyState === 4 && xhr.status === 200) {
+            var res = JSON.parse(xhr.responseText);
+            if (res.success) {
+                loadUsers();
+                loadStats();
+            } else {
+                alert(res.error);
+            }
+        }
+    };
+    xhr.send(JSON.stringify({username: username}));
+}
+
+// ============ LOAD ALL BOOKINGS ============
+function loadAllBookings() {
+    var xhr = new XMLHttpRequest();
+    xhr.open("GET", "/api/bookings", true);
+    xhr.onreadystatechange = function() {
+        if (xhr.readyState === 4 && xhr.status === 200) {
+            var res = JSON.parse(xhr.responseText);
+            if (res.success) {
+                var bookings = res.bookings;
+                var html = "";
+                if (bookings.length === 0) {
+                    html = '<p style="color:#888;">Wax booking ah ma jiraan.</p>';
+                } else {
+                    html = '<table class="data-table"><tr><th>ID</th><th>User</th><th>Name</th><th>Room</th><th>Check-In</th><th>Check-Out</th><th>Guests</th><th>Action</th></tr>';
+                    for (var i = 0; i < bookings.length; i++) {
+                        var b = bookings[i];
+                        html += '<tr><td>' + b.id + '</td><td>' + b.username + '</td><td>' + b.name + '</td><td>' + b.roomType + '</td><td>' + b.checkin + '</td><td>' + b.checkout + '</td><td>' + b.guests + '</td>';
+                        html += '<td><input type="button" value="Delete" class="btn btn-small" onclick="deleteBooking(\'' + b.id + '\')"></td></tr>';
+                    }
+                    html += '</table>';
+                }
+                document.getElementById("allBookingsList").innerHTML = html;
+            }
+        }
+    };
+    xhr.send();
+}
+
+// ============ DELETE BOOKING ============
+function deleteBooking(id) {
+    if (!confirm("Delete booking ID " + id + "?")) return;
+
+    var xhr = new XMLHttpRequest();
+    xhr.open("POST", "/api/bookings/delete", true);
+    xhr.setRequestHeader("Content-Type", "application/json");
+    xhr.onreadystatechange = function() {
+        if (xhr.readyState === 4 && xhr.status === 200) {
+            var res = JSON.parse(xhr.responseText);
+            if (res.success) {
+                loadAllBookings();
+                loadStats();
+            } else {
+                alert(res.error);
+            }
+        }
+    };
+    xhr.send(JSON.stringify({id: id}));
+}
+
+// ============ LOAD ALL ON PAGE LOAD ============
+loadStats();
+loadRooms();
+loadUsers();
+loadAllBookings();
+</script>
+
+</body>
+</html>

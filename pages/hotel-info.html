@@ -1,0 +1,142 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+    <title>Kismaayo Hotel - About</title>
+    <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+
+<script>
+if (!localStorage.getItem("hotelUser")) {
+    window.location.href = "login.html";
+}
+</script>
+
+<table class="layout">
+<tr><td class="header" colspan="2">Kismaayo Hotel - About Us</td></tr>
+<tr><td class="nav" colspan="2">
+    <a href="../index.html">Home</a>
+    <a href="rooms.html">Rooms</a>
+    <a href="reservation.html">Book Now</a>
+    <a href="dashboard.html">Dashboard</a>
+    <a href="admin.html">Admin</a>
+    <a href="hotel-info.html" class="active">About</a>
+</td></tr>
+<tr>
+<td class="sidebar">
+    <h3>Contact Info</h3>
+    <p style="font-size:13px;">
+    Kismaayo, Somalia<br>
+    +252 61 234 5678<br>
+    info@kismaayo.com
+    </p>
+</td>
+<td class="content">
+
+<h2>About Kismaayo Hotel</h2>
+
+<div class="info-box">
+<h3>Our Hotel</h3>
+<p style="color:#555; line-height:1.8;">
+Kismaayo Hotel waa hotel ku yaala magaalada Kismaayo, Somalia.
+Waxaan bixinaa qolal raaxo leh, WiFi bilaash ah, iyo adeegyo 24/7.
+Hotel-ka waxaa la furay 2020.
+</p>
+</div>
+
+<div class="info-box">
+<h3>Contact</h3>
+<p style="color:#555;">
+Location: Kismaayo, Somalia<br>
+Phone: +252 61 234 5678<br>
+Email: info@kismaayohotel.com
+</p>
+</div>
+
+<div class="info-box">
+<h3>Amenities</h3>
+<p style="color:#555;">
+Free WiFi<br>
+Swimming Pool<br>
+Gym & Fitness<br>
+Restaurant<br>
+Free Parking<br>
+Room Service 24/7<br>
+Airport Pickup<br>
+Laundry Service
+</p>
+</div>
+
+<div class="info-box">
+<h3>Room Types</h3>
+<p style="color:#555;">
+Standard Room - $50/night<br>
+Deluxe Room - $80/night<br>
+Suite - $120/night
+</p>
+</div>
+
+<!-- ============ CONTACT FORM ============ -->
+<div class="info-box">
+<h3>Contact Us</h3>
+<form id="contactForm">
+<table class="form-table">
+<tr><td class="label">Your Name:</td><td><input type="text" id="contactName" style="width:250px;"></td></tr>
+<tr><td class="label">Email:</td><td><input type="text" id="contactEmail" style="width:250px;"></td></tr>
+<tr><td class="label" style="vertical-align:top;">Message:</td><td><textarea id="contactMessage" rows="4" style="width:250px; font-family:'Times New Roman',Times,serif; font-size:13px;"></textarea></td></tr>
+<tr><td></td><td><div id="contactMsg" class="error-msg"></div></td></tr>
+<tr><td></td><td><input type="submit" value="Send Message" class="btn"></td></tr>
+</table>
+</form>
+</div>
+
+</td>
+</tr>
+<tr><td class="footer" colspan="2">&copy; 2026 Kismaayo Hotel. All rights reserved.</td></tr>
+</table>
+
+<script>
+var user = JSON.parse(localStorage.getItem("hotelUser"));
+if (user) {
+    if (user.name) document.getElementById("contactName").value = user.name;
+    if (user.email) document.getElementById("contactEmail").value = user.email;
+}
+
+document.getElementById("contactForm").onsubmit = function(e) {
+    e.preventDefault();
+    var name = document.getElementById("contactName").value;
+    var email = document.getElementById("contactEmail").value;
+    var message = document.getElementById("contactMessage").value;
+    var msg = document.getElementById("contactMsg");
+
+    if (!name || !message) {
+        msg.style.color = "#cc0000";
+        msg.textContent = "Fadlan buuxi magacaaga iyo farriinta!";
+        return;
+    }
+
+    msg.textContent = "Sending...";
+    msg.style.color = "#555";
+
+    var xhr = new XMLHttpRequest();
+    xhr.open("POST", "/api/contact", true);
+    xhr.setRequestHeader("Content-Type", "application/json");
+    xhr.onreadystatechange = function() {
+        if (xhr.readyState === 4 && xhr.status === 200) {
+            var res = JSON.parse(xhr.responseText);
+            if (res.success) {
+                msg.style.color = "#08c";
+                msg.textContent = "Message sent! Thanks for contacting us.";
+                document.getElementById("contactMessage").value = "";
+            } else {
+                msg.style.color = "#cc0000";
+                msg.textContent = res.error;
+            }
+        }
+    };
+    xhr.send(JSON.stringify({name: name, email: email, message: message}));
+};
+</script>
+
+</body>
+</html>

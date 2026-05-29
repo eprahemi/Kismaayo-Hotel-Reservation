@@ -1,0 +1,1319 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Group 3 — Kismaayo Hotel · Interactive Installation Guide</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<style>
+/* ═══════════════════════════════════════════════════════════════
+   RESET & BASE
+   ═══════════════════════════════════════════════════════════════ */
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{
+  background:#0b0e17;
+  color:#e0e4ec;
+  font:15px/1.7 'Inter','Segoe UI',system-ui,sans-serif;
+  -webkit-font-smoothing:antialiased
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   SCROLLBAR
+   ═══════════════════════════════════════════════════════════════ */
+::-webkit-scrollbar{width:6px}
+::-webkit-scrollbar-track{background:#0b0e17}
+::-webkit-scrollbar-thumb{background:#C9A96E;border-radius:3px}
+
+/* ═══════════════════════════════════════════════════════════════
+   ANIMATIONS
+   ═══════════════════════════════════════════════════════════════ */
+@keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+@keyframes slideIn{from{opacity:0;transform:translateX(-20px)}to{opacity:1;transform:translateX(0)}}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.5}}
+@keyframes glow{0%,100%{box-shadow:0 0 5px rgba(201,169,110,0.2)}50%{box-shadow:0 0 20px rgba(201,169,110,0.4)}}
+
+/* ═══════════════════════════════════════════════════════════════
+   LAYOUT
+   ═══════════════════════════════════════════════════════════════ */
+.page{max-width:1000px;margin:30px auto;overflow:hidden}
+
+/* ═══════════════════════════════════════════════════════════════
+   HEADER
+   ═══════════════════════════════════════════════════════════════ */
+.header{
+  background:linear-gradient(135deg,#0b0e17 0%,#1a1a2e 50%,#16213e 100%);
+  color:#fff;
+  padding:32px 40px;
+  display:flex;
+  align-items:center;
+  gap:18px;
+  border-bottom:2px solid rgba(201,169,110,.15);
+  position:relative;
+  overflow:hidden
+}
+.header::after{
+  content:'';
+  position:absolute;
+  width:300px;height:300px;
+  background:radial-gradient(circle,rgba(201,169,110,.06) 0%,transparent 70%);
+  top:-100px;right:-50px;
+  pointer-events:none
+}
+.header svg{flex-shrink:0;position:relative;z-index:1}
+.header h1{font-size:26px;font-weight:700;letter-spacing:-0.3px;position:relative;z-index:1}
+.header p{font-size:14px;opacity:0.6;margin:4px 0 0 0;position:relative;z-index:1}
+
+/* ═══════════════════════════════════════════════════════════════
+   NAV
+   ═══════════════════════════════════════════════════════════════ */
+.nav{
+  background:rgba(255,255,255,.02);
+  padding:0 40px;
+  display:flex;
+  gap:4px;
+  border-bottom:1px solid rgba(255,255,255,.06)
+}
+.nav a{
+  color:#667;
+  padding:12px 20px;
+  font-size:13px;
+  font-weight:600;
+  border-bottom:2px solid transparent;
+  margin-bottom:-1px;
+  transition:all 0.2s;
+  text-decoration:none;
+  display:flex;align-items:center;gap:8px
+}
+.nav a:hover{color:#e0e4ec;text-decoration:none}
+.nav a.active{color:#C9A96E;border-bottom-color:#C9A96E;background:rgba(201,169,110,.04)}
+
+/* ═══════════════════════════════════════════════════════════════
+   CONTENT
+   ═══════════════════════════════════════════════════════════════ */
+.content{padding:32px 40px 40px}
+
+h2{
+  font-size:24px;
+  color:#fff;
+  margin:32px 0 16px;
+  display:flex;
+  align-items:center;
+  gap:10px
+}
+h2:first-of-type{margin-top:0}
+h2::after{
+  content:'';
+  flex:1;
+  height:1px;
+  background:linear-gradient(to right,rgba(201,169,110,.3),transparent);
+  margin-left:8px
+}
+
+h3{
+  font-size:16px;
+  color:#C9A96E;
+  margin:20px 0 8px
+}
+
+p{color:#889;margin-bottom:12px;font-size:14px}
+
+/* ═══════════════════════════════════════════════════════════════
+   WHAT YOU NEED — requirement cards
+   ═══════════════════════════════════════════════════════════════ */
+.req-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(180px,1fr));
+  gap:12px;
+  margin-bottom:24px
+}
+.req-card{
+  background:rgba(255,255,255,.03);
+  border:1px solid rgba(255,255,255,.06);
+  border-radius:10px;
+  padding:20px;
+  text-align:center;
+  transition:all 0.3s
+}
+.req-card:hover{
+  background:rgba(255,255,255,.05);
+  border-color:rgba(201,169,110,.2);
+  transform:translateY(-2px)
+}
+.req-card .req-icon{font-size:32px;display:block;margin-bottom:8px}
+.req-card strong{color:#fff;font-size:14px}
+.req-card p{font-size:12px;color:#556;margin:2px 0 0}
+
+/* ═══════════════════════════════════════════════════════════════
+   OS TABS
+   ═══════════════════════════════════════════════════════════════ */
+.os-tabs{
+  display:flex;
+  gap:0;
+  margin:20px 0 0;
+  border-bottom:2px solid rgba(255,255,255,.06);
+  position:relative
+}
+.os-tab{
+  padding:12px 28px;
+  font-size:14px;
+  font-weight:600;
+  color:#667;
+  border-bottom:2px solid transparent;
+  margin-bottom:-2px;
+  display:flex;
+  align-items:center;
+  gap:8px;
+  transition:all 0.2s;
+  cursor:pointer;
+  text-decoration:none
+}
+.os-tab:hover{color:#e0e4ec;text-decoration:none}
+.os-tab.active{color:#C9A96E;border-bottom-color:#C9A96E;background:rgba(201,169,110,.04)}
+
+/* ═══════════════════════════════════════════════════════════════
+   OS PANELS
+   ═══════════════════════════════════════════════════════════════ */
+.os-panel{display:none;animation:fadeUp 0.4s ease}
+.os-panel.active{display:block}
+
+/* ═══════════════════════════════════════════════════════════════
+   STEP CARDS
+   ═══════════════════════════════════════════════════════════════ */
+.step-list{margin:16px 0}
+
+.step-card{
+  display:flex;
+  gap:18px;
+  padding:20px 24px;
+  margin-bottom:12px;
+  background:rgba(255,255,255,.02);
+  border:1px solid rgba(255,255,255,.05);
+  border-radius:12px;
+  border-left:4px solid #C9A96E;
+  transition:all 0.3s;
+  align-items:flex-start;
+  position:relative
+}
+.step-card:hover{
+  background:rgba(255,255,255,.04);
+  border-color:rgba(201,169,110,.15);
+  box-shadow:0 4px 20px rgba(0,0,0,.2);
+  transform:translateX(4px)
+}
+.step-card.done{
+  border-left-color:#27ae60;
+  opacity:0.8
+}
+.step-card.done .step-icon{
+  background:#27ae60;
+  color:#fff
+}
+
+.step-card .step-icon{
+  flex-shrink:0;
+  width:44px;height:44px;
+  background:rgba(201,169,110,.1);
+  border-radius:50%;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  color:#C9A96E;
+  font-weight:700;
+  font-size:18px;
+  margin-top:2px;
+  transition:all 0.3s
+}
+
+.step-card .step-body{flex:1;min-width:0}
+
+.step-card .step-title{
+  font-weight:700;
+  font-size:15px;
+  color:#fff;
+  margin-bottom:4px;
+  display:flex;
+  align-items:center;
+  gap:10px
+}
+.step-card .step-title .step-check{
+  width:18px;height:18px;
+  border:2px solid rgba(255,255,255,.15);
+  border-radius:50%;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  cursor:pointer;
+  transition:all 0.3s;
+  font-size:10px;
+  color:transparent;
+  flex-shrink:0
+}
+.step-card .step-title .step-check:hover{
+  border-color:#C9A96E;
+  background:rgba(201,169,110,.1)
+}
+.step-card .step-title .step-check.checked{
+  background:#27ae60;
+  border-color:#27ae60;
+  color:#fff
+}
+.step-card .step-title .step-check.checked::after{
+  content:'✓'
+}
+
+.step-card .step-desc{
+  color:#889;
+  font-size:13px;
+  margin-bottom:8px;
+  line-height:1.7
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   COMMAND BLOCK
+   ═══════════════════════════════════════════════════════════════ */
+.cmd{
+  background:#06080f;
+  color:#e8edf3;
+  padding:12px 16px;
+  border-radius:8px;
+  font-family:'JetBrains Mono','Fira Code','Consolas',monospace;
+  font-size:13px;
+  margin:8px 0;
+  overflow-x:auto;
+  display:flex;
+  align-items:center;
+  gap:10px;
+  border:1px solid rgba(255,255,255,.06);
+  cursor:pointer;
+  transition:all 0.2s;
+  position:relative
+}
+.cmd:hover{
+  border-color:rgba(201,169,110,.25);
+  background:#0a0d17
+}
+.cmd .prompt{color:#6a9955;user-select:none}
+.cmd .cmd-text{color:#e8edf3;flex:1}
+.cmd .cmd-copy{
+  opacity:0;
+  transition:opacity 0.2s;
+  font-size:11px;
+  color:#667;
+  background:rgba(255,255,255,.06);
+  padding:2px 8px;
+  border-radius:4px;
+  white-space:nowrap
+}
+.cmd:hover .cmd-copy{opacity:1}
+.cmd .cmd-copy:hover{color:#C9A96E;background:rgba(201,169,110,.1)}
+.cmd.copied{border-color:#27ae60}
+.cmd.copied .cmd-copy{color:#27ae60;opacity:1}
+
+/* ═══════════════════════════════════════════════════════════════
+   SUCCESS / INFO BOXES
+   ═══════════════════════════════════════════════════════════════ */
+.success-box{
+  background:rgba(39,174,96,.08);
+  border:1px solid rgba(39,174,96,.15);
+  border-radius:8px;
+  padding:10px 16px;
+  margin:8px 0;
+  font-size:13px;
+  color:#7ddfa0;
+  display:flex;
+  align-items:center;
+  gap:10px
+}
+.info-box{
+  background:rgba(201,169,110,.08);
+  border:1px solid rgba(201,169,110,.15);
+  border-radius:8px;
+  padding:10px 16px;
+  margin:8px 0;
+  font-size:13px;
+  color:#C9A96E;
+  display:flex;
+  align-items:center;
+  gap:10px
+}
+.server-output{
+  background:#06080f;
+  color:#ce9178;
+  padding:12px 16px;
+  border-radius:8px;
+  font-family:'JetBrains Mono',monospace;
+  font-size:13px;
+  margin:8px 0;
+  border-left:4px solid #28a745;
+  line-height:1.6
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   PROGRESS BAR
+   ═══════════════════════════════════════════════════════════════ */
+.progress-container{
+  margin:20px 0 30px;
+  padding:16px 20px;
+  background:rgba(255,255,255,.02);
+  border-radius:10px;
+  border:1px solid rgba(255,255,255,.05)
+}
+.progress-header{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  margin-bottom:10px
+}
+.progress-header span{font-size:13px;color:#667}
+.progress-header strong{color:#C9A96E}
+.progress-bar-track{
+  width:100%;height:6px;
+  background:rgba(255,255,255,.06);
+  border-radius:3px;
+  overflow:hidden
+}
+.progress-bar-fill{
+  height:100%;
+  background:linear-gradient(90deg,#C9A96E,#27ae60);
+  border-radius:3px;
+  transition:width 0.5s ease;
+  width:0%
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   VERIFICATION TABLE
+   ═══════════════════════════════════════════════════════════════ */
+.v-table{
+  width:100%;
+  border-collapse:collapse;
+  margin:16px 0;
+  border-radius:10px;
+  overflow:hidden;
+  border:1px solid rgba(255,255,255,.06)
+}
+.v-table th{
+  background:rgba(201,169,110,.1);
+  color:#C9A96E;
+  padding:10px 14px;
+  font-size:12px;
+  text-align:left;
+  text-transform:uppercase;
+  letter-spacing:.5px
+}
+.v-table td{
+  padding:10px 14px;
+  border-bottom:1px solid rgba(255,255,255,.04);
+  font-size:13px;
+  color:#c9d1d9
+}
+.v-table tr:last-child td{border-bottom:none}
+.v-table tr:hover td{background:rgba(255,255,255,.02)}
+.v-table .v-status{
+  display:inline-flex;
+  align-items:center;
+  gap:6px;
+  cursor:pointer;
+  transition:all 0.2s
+}
+.v-table .v-status:hover{color:#C9A96E}
+.v-table .v-status.done{color:#27ae60}
+
+/* ═══════════════════════════════════════════════════════════════
+   TROUBLE BOXES
+   ═══════════════════════════════════════════════════════════════ */
+.trouble-grid{display:grid;gap:10px;margin:16px 0}
+.trouble-box{
+  display:flex;
+  gap:14px;
+  padding:14px 18px;
+  border-radius:10px;
+  align-items:flex-start;
+  transition:all 0.2s
+}
+.trouble-box:hover{transform:translateX(4px)}
+.trouble-box.warn{background:rgba(255,193,7,.06);border:1px solid rgba(255,193,7,.12)}
+.trouble-box.error{background:rgba(231,76,60,.06);border:1px solid rgba(231,76,60,.12)}
+.trouble-box.info{background:rgba(52,152,219,.06);border:1px solid rgba(52,152,219,.12)}
+.trouble-box .icon{flex-shrink:0;font-size:20px}
+.trouble-box .text{font-size:13px;color:#889;line-height:1.6}
+.trouble-box .text strong{color:#e0e4ec}
+
+/* ═══════════════════════════════════════════════════════════════
+   FILE TREE
+   ═══════════════════════════════════════════════════════════════ */
+.file-tree{
+  background:rgba(255,255,255,.02);
+  border:1px solid rgba(255,255,255,.05);
+  border-radius:10px;
+  padding:20px 24px;
+  font-family:'JetBrains Mono','Fira Code','Consolas',monospace;
+  font-size:13px;
+  line-height:2;
+  margin:14px 0;
+  position:relative
+}
+.file-tree .folder{color:#79c0ff;font-weight:600;cursor:pointer;transition:color 0.2s}
+.file-tree .folder:hover{color:#C9A96E}
+.file-tree .file{cursor:default;transition:color 0.2s}
+.file-tree .file:hover{color:#C9A96E}
+.file-tree .star{
+  display:inline-block;
+  background:rgba(201,169,110,.15);
+  color:#C9A96E;
+  padding:1px 10px;
+  border-radius:10px;
+  font-size:10px;
+  margin-left:6px;
+  font-style:normal
+}
+.file-tree .highlight{
+  background:rgba(201,169,110,.08);
+  padding:0 6px;
+  border-radius:4px;
+  color:#C9A96E
+}
+.file-tree .tree-toggle{
+  cursor:pointer;
+  user-select:none;
+  color:#667;
+  transition:transform 0.2s;
+  display:inline-block;
+  width:16px
+}
+.file-tree .tree-toggle.open{transform:rotate(90deg)}
+.file-tree .tree-children{padding-left:24px;overflow:hidden;transition:max-height 0.3s}
+.file-tree .tree-children.collapsed{max-height:0}
+
+/* ═══════════════════════════════════════════════════════════════
+   HELP BOX
+   ═══════════════════════════════════════════════════════════════ */
+.help-box{
+  background:rgba(52,152,219,.06);
+  border:1px solid rgba(52,152,219,.12);
+  border-radius:10px;
+  padding:16px 20px;
+  margin:16px 0;
+  display:flex;
+  gap:12px;
+  align-items:flex-start;
+  transition:all 0.2s
+}
+.help-box:hover{border-color:rgba(52,152,219,.25)}
+.help-box .icon{font-size:20px;flex-shrink:0}
+.help-box .text{font-size:13px;color:#889}
+.help-box .text strong{color:#e0e4ec}
+
+/* ═══════════════════════════════════════════════════════════════
+   TOAST
+   ═══════════════════════════════════════════════════════════════ */
+.toast-container{
+  position:fixed;bottom:24px;right:24px;
+  z-index:9999;display:flex;flex-direction:column;gap:8px
+}
+.toast{
+  background:rgba(11,14,23,.95);
+  backdrop-filter:blur(12px);
+  border:1px solid rgba(201,169,110,.2);
+  color:#e0e4ec;
+  padding:12px 20px;
+  border-radius:10px;
+  font-size:13px;
+  animation:slideInRight 0.3s ease;
+  display:flex;align-items:center;gap:10px;
+  box-shadow:0 8px 32px rgba(0,0,0,.4)
+}
+@keyframes slideInRight{from{transform:translateX(100px);opacity:0}to{transform:translateX(0);opacity:1}}
+.toast.success{border-color:#27ae60}
+.toast.success .toast-icon{color:#27ae60}
+.toast.info{border-color:#C9A96E}
+.toast.info .toast-icon{color:#C9A96E}
+
+/* ═══════════════════════════════════════════════════════════════
+   FOOTER
+   ═══════════════════════════════════════════════════════════════ */
+.footer{
+  background:rgba(255,255,255,.02);
+  color:#556;
+  text-align:center;
+  padding:20px 40px;
+  font-size:13px;
+  border-top:1px solid rgba(255,255,255,.04)
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   RESPONSIVE
+   ═══════════════════════════════════════════════════════════════ */
+@media(max-width:768px){
+  .page{margin:0;border-radius:0}
+  .content{padding:20px}
+  .header{padding:20px;flex-direction:column;text-align:center}
+  .nav{padding:0 16px;overflow-x:auto}
+  .os-tabs{overflow-x:auto;flex-wrap:nowrap}
+  .os-tab{padding:10px 16px;white-space:nowrap}
+  .step-card{flex-direction:column;gap:12px}
+  .req-grid{grid-template-columns:repeat(2,1fr)}
+  .file-tree{font-size:12px;line-height:1.8;padding:14px}
+}
+@media print{
+  body{background:#fff;color:#222}
+  .header{background:#1B2A4A!important;padding:20px}
+  .header h1{color:#fff}
+  .nav,.no-print,.toast-container{display:none!important}
+  .step-card{break-inside:avoid;border-left-color:#C9A96E!important;background:#fafafa!important}
+  .step-card .step-title .step-check{display:none}
+  .cmd{background:#f5f5f5!important;color:#222!important;border:1px solid #ddd!important}
+  .cmd .prompt{color:#6a9955}
+  .cmd .cmd-text{color:#222}
+  .cmd .cmd-copy{display:none}
+  .server-output{background:#f5f5f5!important;color:#333!important}
+  .file-tree{background:#fafafa!important}
+  .file-tree .folder{color:#0d47a1!important}
+  .progress-container{display:none}
+  .trouble-box{break-inside:avoid}
+  .v-table td{color:#444}
+  h2{color:#1B2A4A}
+  h2::after{background:linear-gradient(to right,#C9A96E,transparent)}
+  .help-box{break-inside:avoid}
+  @page{margin:1.2cm}
+}
+</style>
+</head>
+<body>
+
+<!-- ═══ TOAST CONTAINER ═══ -->
+<div class="toast-container" id="toastContainer"></div>
+
+<div class="page">
+
+  <!-- ═══ HEADER ═══ -->
+  <div class="header">
+    <svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <rect width="48" height="48" rx="12" fill="rgba(201,169,110,.15)"/>
+      <rect x="8" y="8" width="32" height="32" rx="6" fill="rgba(201,169,110,.08)"/>
+      <path d="M16 24h16M24 16v16" stroke="#C9A96E" stroke-width="2.5" stroke-linecap="round"/>
+      <circle cx="24" cy="24" r="4" fill="#C9A96E"/>
+    </svg>
+    <div>
+      <h1>Kismaayo Hotel — Installation Guide</h1>
+      <p>How to install Java and run the hotel website on Windows &amp; Fedora Linux</p>
+    </div>
+  </div>
+
+  <!-- ═══ NAV ═══ -->
+  <div class="nav no-print">
+    <a href="#" class="active">🛠 Installation Guide</a>
+    <a href="#troubleshooting" style="margin-left:auto">🐛 Troubleshooting</a>
+  </div>
+
+  <!-- ═══ CONTENT ═══ -->
+  <div class="content">
+
+    <!-- ── WHAT YOU NEED ── -->
+    <h2>📋 What You Need</h2>
+    <div class="req-grid">
+      <div class="req-card">
+        <span class="req-icon">☕</span>
+        <strong>Java 8+</strong>
+        <p>JRE or JDK (JDK needed for compilation)</p>
+      </div>
+      <div class="req-card">
+        <span class="req-icon">📁</span>
+        <strong>Project Files</strong>
+        <p>HotelReservation folder</p>
+      </div>
+      <div class="req-card">
+        <span class="req-icon">🌐</span>
+        <strong>Browser</strong>
+        <p>Chrome / Firefox / Edge</p>
+      </div>
+      <div class="req-card">
+        <span class="req-icon">⌨️</span>
+        <strong>Terminal</strong>
+        <p>Command Prompt (Windows) or Terminal (Linux)</p>
+      </div>
+    </div>
+
+    <!-- ── OVERALL PROGRESS ── -->
+    <div class="progress-container no-print" id="progressContainer">
+      <div class="progress-header">
+        <span>Setup Progress</span>
+        <span><strong id="progressCount">0</strong> / <span id="progressTotal">8</span> steps done</span>
+      </div>
+      <div class="progress-bar-track">
+        <div class="progress-bar-fill" id="progressFill"></div>
+      </div>
+    </div>
+
+    <!-- ── OS TABS ── -->
+    <div class="os-tabs no-print">
+      <a class="os-tab active" data-os="windows" onclick="switchOS('windows', this)">
+        <svg width="18" height="18" viewBox="0 0 18 18"><rect x="1" y="1" width="7" height="7" rx="1" fill="currentColor"/><rect x="10" y="1" width="7" height="7" rx="1" fill="currentColor"/><rect x="1" y="10" width="7" height="7" rx="1" fill="currentColor"/><rect x="10" y="10" width="7" height="7" rx="1" fill="currentColor"/></svg>
+        Windows
+      </a>
+      <a class="os-tab" data-os="fedora" onclick="switchOS('fedora', this)">
+        <svg width="18" height="18" viewBox="0 0 18 18"><circle cx="9" cy="9" r="8" fill="currentColor"/><path d="M5 9a4 4 0 0 1 4-4 4 4 0 0 1 4 4H5z" fill="#0b0e17"/></svg>
+        Fedora Linux
+      </a>
+    </div>
+
+    <!-- ══════════════════════════════════════════════════════ -->
+    <!--  WINDOWS PANEL                                       -->
+    <!-- ══════════════════════════════════════════════════════ -->
+    <div class="os-panel active" id="panel-windows">
+
+      <div class="step-list">
+
+        <div class="step-card" data-step="0">
+          <div class="step-icon">
+            <svg width="22" height="22" viewBox="0 0 22 22"><path d="M11 2l7 4v10l-7 4-7-4V6l7-4z" fill="none" stroke="currentColor" stroke-width="1.5"/><circle cx="11" cy="11" r="2.5" fill="currentColor"/></svg>
+          </div>
+          <div class="step-body">
+            <div class="step-title">
+              <span>Download Java for Windows</span>
+              <span class="step-check" data-step="0" onclick="toggleStepCheck(this, event)" title="Mark done"></span>
+            </div>
+            <div class="step-desc">
+              Go to <a href="https://adoptium.net/" target="_blank" style="color:#C9A96E">adoptium.net</a> and download the
+              <strong style="color:#fff">Java 17 or 21 MSI installer</strong> for Windows (x64).
+              You can also use <a href="https://www.oracle.com/java/technologies/downloads/" target="_blank" style="color:#C9A96E">Oracle Java</a>.
+            </div>
+            <div class="cmd" onclick="copyCmd(this, 'Download Java 17 MSI from adoptium.net')">
+              <span>🌐</span>
+              <span class="cmd-text">adoptium.net  →  Download Java 17 MSI</span>
+              <span class="cmd-copy">📋 Copy</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="step-card" data-step="1">
+          <div class="step-icon">
+            <svg width="22" height="22" viewBox="0 0 22 22"><path d="M3 7h16v12H3V7z" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M3 7l8-4 8 4" fill="none" stroke="currentColor" stroke-width="1.5"/></svg>
+          </div>
+          <div class="step-body">
+            <div class="step-title">
+              <span>Install Java</span>
+              <span class="step-check" data-step="1" onclick="toggleStepCheck(this, event)" title="Mark done"></span>
+            </div>
+            <div class="step-desc">
+              Double-click the downloaded <code style="color:#C9A96E">.msi</code> file.
+              Click <strong style="color:#fff">Next → Next → Install</strong>.
+              Leave all default settings.
+            </div>
+            <div class="info-box">
+              <span>⏳</span> Takes about 1 minute. No special settings needed.
+            </div>
+          </div>
+        </div>
+
+        <div class="step-card" data-step="2">
+          <div class="step-icon">
+            <svg width="22" height="22" viewBox="0 0 22 22"><rect x="2" y="2" width="18" height="14" rx="2" fill="none" stroke="currentColor" stroke-width="1.5"/><circle cx="11" cy="9" r="2" fill="currentColor"/></svg>
+          </div>
+          <div class="step-body">
+            <div class="step-title">
+              <span>Open Command Prompt</span>
+              <span class="step-check" data-step="2" onclick="toggleStepCheck(this, event)" title="Mark done"></span>
+            </div>
+            <div class="step-desc">
+              Press <strong style="color:#fff">Windows Key + R</strong>, type <code style="color:#C9A96E">cmd</code>, press <strong style="color:#fff">Enter</strong>.
+              A black terminal window opens.
+            </div>
+            <div class="cmd" onclick="copyCmd(this, 'Windows Key + R → type cmd → Enter')">
+              <span>⌨️</span>
+              <span class="cmd-text">Windows Key + R  →  type "cmd"  →  Enter</span>
+              <span class="cmd-copy">📋 Copy</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="step-card" data-step="3">
+          <div class="step-icon">
+            <svg width="22" height="22" viewBox="0 0 22 22"><circle cx="11" cy="11" r="8" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M8 11l2 2 4-4" fill="none" stroke="currentColor" stroke-width="2"/></svg>
+          </div>
+          <div class="step-body">
+            <div class="step-title">
+              <span>Verify Java is Installed</span>
+              <span class="step-check" data-step="3" onclick="toggleStepCheck(this, event)" title="Mark done"></span>
+            </div>
+            <div class="step-desc">
+              In the Command Prompt, type:
+            </div>
+            <div class="cmd" onclick="copyCmd(this, 'java -version')">
+              <span class="prompt">C:\Users\You&gt;</span>
+              <span class="cmd-text">java -version</span>
+              <span class="cmd-copy">📋 Copy</span>
+            </div>
+            <div class="step-desc">
+              You should see something like:
+              <code style="color:#C9A96E">java version "17.0.12" 2024-07-16 LTS</code>
+            </div>
+            <div class="success-box">
+              <span>✅</span> If you see a version number — Java is ready!
+            </div>
+          </div>
+        </div>
+
+        <div class="step-card" data-step="4">
+          <div class="step-icon">
+            <svg width="22" height="22" viewBox="0 0 22 22"><path d="M3 11h16" stroke="currentColor" stroke-width="1.5"/><path d="M11 3v16" stroke="currentColor" stroke-width="1.5"/><path d="M15 7l4 4-4 4" stroke="currentColor" stroke-width="1.5" fill="none"/></svg>
+          </div>
+          <div class="step-body">
+            <div class="step-title">
+              <span>Navigate to the Project Folder</span>
+              <span class="step-check" data-step="4" onclick="toggleStepCheck(this, event)" title="Mark done"></span>
+            </div>
+            <div class="step-desc">
+              Find where you saved the <strong style="color:#fff">HotelReservation</strong> folder, then type:
+            </div>
+            <div class="cmd" onclick="copyCmd(this, 'cd Desktop\\HotelReservation\\java')">
+              <span class="prompt">C:\Users\You&gt;</span>
+              <span class="cmd-text">cd Desktop\HotelReservation\java</span>
+              <span class="cmd-copy">📋 Copy</span>
+            </div>
+            <div class="step-desc">
+              (Change the path if your folder is in <strong style="color:#fff">Downloads</strong> or <strong style="color:#fff">Documents</strong>)
+            </div>
+          </div>
+        </div>
+
+        <div class="step-card" data-step="5">
+          <div class="step-icon">
+            <svg width="22" height="22" viewBox="0 0 22 22"><path d="M5 5h12v12H5z" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M9 8l4 3-4 3" fill="none" stroke="currentColor" stroke-width="1.5"/></svg>
+          </div>
+          <div class="step-body">
+            <div class="step-title">
+              <span>Compile the Server</span>
+              <span class="step-check" data-step="5" onclick="toggleStepCheck(this, event)" title="Mark done"></span>
+            </div>
+            <div class="step-desc">
+              Type this command:
+            </div>
+            <div class="cmd" onclick="copyCmd(this, 'javac HotelServer.java')">
+              <span class="prompt">C:\...\java&gt;</span>
+              <span class="cmd-text">javac HotelServer.java</span>
+              <span class="cmd-copy">📋 Copy</span>
+            </div>
+            <div class="success-box">
+              <span>✅</span> No error messages = it compiled successfully! You'll just see a new prompt.
+            </div>
+            <div class="info-box">
+              <span>💡</span> If you see <code style="color:#C9A96E">'javac' is not recognized</code>, you installed JRE instead of JDK. Download the JDK version.
+            </div>
+          </div>
+        </div>
+
+        <div class="step-card" data-step="6">
+          <div class="step-icon">
+            <svg width="22" height="22" viewBox="0 0 22 22"><circle cx="11" cy="11" r="8" fill="none" stroke="currentColor" stroke-width="1.5"/><circle cx="11" cy="11" r="3" fill="currentColor"/></svg>
+          </div>
+          <div class="step-body">
+            <div class="step-title">
+              <span>Start the Server</span>
+              <span class="step-check" data-step="6" onclick="toggleStepCheck(this, event)" title="Mark done"></span>
+            </div>
+            <div class="step-desc">
+              Type this command:
+            </div>
+            <div class="cmd" onclick="copyCmd(this, 'java HotelServer')">
+              <span class="prompt">C:\...\java&gt;</span>
+              <span class="cmd-text">java HotelServer</span>
+              <span class="cmd-copy">📋 Copy</span>
+            </div>
+            <div class="step-desc">
+              You should see:
+            </div>
+            <div class="server-output">
+              ========================================<br>
+              &nbsp;&nbsp;Kismaayo Hotel Server running on<br>
+              &nbsp;&nbsp;http://localhost:8080<br>
+              ========================================
+            </div>
+            <div class="info-box">
+              <span>⚠️</span> <strong style="color:#fff">Keep this window open!</strong> The server stops if you close it.
+            </div>
+          </div>
+        </div>
+
+        <div class="step-card" data-step="7">
+          <div class="step-icon">
+            <svg width="22" height="22" viewBox="0 0 22 22"><rect x="2" y="4" width="18" height="14" rx="2" fill="none" stroke="currentColor" stroke-width="1.5"/><circle cx="11" cy="11" r="2" fill="currentColor"/></svg>
+          </div>
+          <div class="step-body">
+            <div class="step-title">
+              <span>Open the Website 🎉</span>
+              <span class="step-check" data-step="7" onclick="toggleStepCheck(this, event)" title="Mark done"></span>
+            </div>
+            <div class="step-desc">
+              Open your browser and type this in the address bar:
+            </div>
+            <div class="cmd" onclick="copyCmd(this, 'http://localhost:8080')" style="border-left:4px solid #C9A96E">
+              <span>🌐</span>
+              <span class="cmd-text">http://localhost:8080</span>
+              <span class="cmd-copy">📋 Copy</span>
+            </div>
+            <div class="success-box">
+              <span>🎉</span> <strong>Kismaayo Hotel home page should appear!</strong><br>
+              Login with: <strong style="color:#fff">admin</strong> / <strong style="color:#fff">admin123</strong>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════════════════ -->
+    <!--  FEDORA PANEL                                       -->
+    <!-- ══════════════════════════════════════════════════════ -->
+    <div class="os-panel" id="panel-fedora">
+
+      <div class="step-list">
+
+        <div class="step-card" data-step="0">
+          <div class="step-icon">
+            <svg width="22" height="22" viewBox="0 0 22 22"><circle cx="11" cy="11" r="8" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M7 11a4 4 0 0 1 4-4 4 4 0 0 1 4 4H7z" fill="currentColor"/></svg>
+          </div>
+          <div class="step-body">
+            <div class="step-title">
+              <span>Install Java (if not installed)</span>
+              <span class="step-check" data-step="0" onclick="toggleStepCheck(this, event)" title="Mark done"></span>
+            </div>
+            <div class="step-desc">
+              Open a terminal and run:
+            </div>
+            <div class="cmd" onclick="copyCmd(this, 'sudo dnf install java-latest-openjdk')">
+              <span class="prompt">$</span>
+              <span class="cmd-text">sudo dnf install java-latest-openjdk</span>
+              <span class="cmd-copy">📋 Copy</span>
+            </div>
+            <div class="success-box">
+              <span>✅</span> After install, verify with <code style="color:#C9A96E">java -version</code>
+            </div>
+          </div>
+        </div>
+
+        <div class="step-card" data-step="1">
+          <div class="step-icon">➡️</div>
+          <div class="step-body">
+            <div class="step-title">
+              <span>Navigate &amp; Compile</span>
+              <span class="step-check" data-step="1" onclick="toggleStepCheck(this, event)" title="Mark done"></span>
+            </div>
+            <div class="cmd" onclick="copyCmd(this, 'cd HotelReservation/java && javac HotelServer.java')">
+              <span class="prompt">$</span>
+              <span class="cmd-text">cd HotelReservation/java && javac HotelServer.java</span>
+              <span class="cmd-copy">📋 Copy</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="step-card" data-step="2">
+          <div class="step-icon">🚀</div>
+          <div class="step-body">
+            <div class="step-title">
+              <span>Run the Server</span>
+              <span class="step-check" data-step="2" onclick="toggleStepCheck(this, event)" title="Mark done"></span>
+            </div>
+            <div class="cmd" onclick="copyCmd(this, 'java HotelServer')">
+              <span class="prompt">$</span>
+              <span class="cmd-text">java HotelServer</span>
+              <span class="cmd-copy">📋 Copy</span>
+            </div>
+            <div class="server-output" style="margin-top:8px">
+              ========================================<br>
+              &nbsp;&nbsp;Kismaayo Hotel Server running on<br>
+              &nbsp;&nbsp;http://localhost:8080<br>
+              ========================================
+            </div>
+            <div class="success-box">
+              <span>🎉</span> Open browser → <strong style="color:#fff">http://localhost:8080</strong><br>
+              Login: <strong style="color:#fff">admin</strong> / <strong style="color:#fff">admin123</strong>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════════════════ -->
+    <!--  VERIFICATION                                       -->
+    <!-- ══════════════════════════════════════════════════════ -->
+    <h2>✅ Verify Everything Works</h2>
+    <p>Run through this checklist after setup to confirm everything is working.</p>
+
+    <table class="v-table">
+      <tr><th style="width:40px;">#</th><th>Test</th><th>Expected Result</th><th style="width:60px;">Status</th></tr>
+      <tr>
+        <td>1</td>
+        <td><code style="color:#C9A96E">java -version</code></td>
+        <td>Shows Java version (17, 21, etc.)</td>
+        <td><span class="v-status" onclick="toggleVerify(this)">⬜</span></td>
+      </tr>
+      <tr>
+        <td>2</td>
+        <td><code style="color:#C9A96E">javac HotelServer.java</code></td>
+        <td>No errors — clean prompt</td>
+        <td><span class="v-status" onclick="toggleVerify(this)">⬜</span></td>
+      </tr>
+      <tr>
+        <td>3</td>
+        <td><code style="color:#C9A96E">java HotelServer</code></td>
+        <td>"Kismaayo Hotel Server running on http://localhost:8080"</td>
+        <td><span class="v-status" onclick="toggleVerify(this)">⬜</span></td>
+      </tr>
+      <tr>
+        <td>4</td>
+        <td>Browser → <code style="color:#C9A96E">http://localhost:8080</code></td>
+        <td>Home page loads with "Kismaayo Hotel" header</td>
+        <td><span class="v-status" onclick="toggleVerify(this)">⬜</span></td>
+      </tr>
+      <tr>
+        <td>5</td>
+        <td>Login: <strong style="color:#fff">admin</strong> / <strong style="color:#fff">admin123</strong></td>
+        <td>Redirects to home — "Welcome, Admin!"</td>
+        <td><span class="v-status" onclick="toggleVerify(this)">⬜</span></td>
+      </tr>
+      <tr>
+        <td>6</td>
+        <td>Click <strong style="color:#fff">Admin</strong> in nav</td>
+        <td>Admin panel with stats, rooms, users, bookings</td>
+        <td><span class="v-status" onclick="toggleVerify(this)">⬜</span></td>
+      </tr>
+    </table>
+
+    <!-- ══════════════════════════════════════════════════════ -->
+    <!--  TROUBLESHOOTING                                    -->
+    <!-- ══════════════════════════════════════════════════════ -->
+    <h2 id="troubleshooting">🐛 Troubleshooting</h2>
+
+    <div class="trouble-grid">
+      <div class="trouble-box error">
+        <div class="icon">❌</div>
+        <div class="text">
+          <strong>"javac is not recognized" (Windows)</strong><br>
+          You installed <strong>JRE</strong> (Runtime), not <strong>JDK</strong> (Development Kit).
+          Download the JDK version from <a href="https://adoptium.net/" style="color:#C9A96E">adoptium.net</a>.
+        </div>
+      </div>
+
+      <div class="trouble-box error">
+        <div class="icon">❌</div>
+        <div class="text">
+          <strong>"java is not recognized" (Windows)</strong><br>
+          Java is not installed. Download and install Java, then <strong style="color:#fff">restart your computer</strong>.
+        </div>
+      </div>
+
+      <div class="trouble-box warn">
+        <div class="icon">⚠️</div>
+        <div class="text">
+          <strong>Port 8080 already in use</strong><br>
+          <strong style="color:#fff">Windows:</strong> Open Task Manager → find the program using port 8080 → close it.<br>
+          <strong style="color:#fff">Fedora:</strong> Run <code style="color:#C9A96E">fuser -k 8080/tcp</code> in terminal.
+        </div>
+      </div>
+
+      <div class="trouble-box error">
+        <div class="icon">❌</div>
+        <div class="text">
+          <strong>Browser shows "Server error!"</strong><br>
+          You opened the HTML file directly (<code style="color:#C9A96E">file://</code>), not through the server.
+          Make sure the server is running and type <code style="color:#C9A96E">http://localhost:8080</code>.
+        </div>
+      </div>
+
+      <div class="trouble-box info">
+        <div class="icon">ℹ️</div>
+        <div class="text">
+          <strong>Data files corrupted</strong><br>
+          Delete the file in <code style="color:#C9A96E">data/</code> folder and restart the server — it recreates default files automatically.
+        </div>
+      </div>
+
+      <div class="trouble-box warn">
+        <div class="icon">🔒</div>
+        <div class="text">
+          <strong>Can't log in</strong><br>
+          Default credentials: <strong style="color:#fff">admin</strong> / <strong style="color:#fff">admin123</strong>.
+          If you changed the password, check <code style="color:#C9A96E">data/users.txt</code>.
+        </div>
+      </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════════════════ -->
+    <!--  PROJECT FILES                                      -->
+    <!-- ══════════════════════════════════════════════════════ -->
+    <h2>📁 Project Files</h2>
+    <p>Click on folders to expand/collapse. The <code style="color:#C9A96E">HotelServer.java</code> file is the main entry point.</p>
+
+    <div class="file-tree" id="fileTree">
+      <div class="tree-item">
+        <span class="tree-toggle open" onclick="toggleTree(this)">▶</span>
+        📁 <span class="folder">HotelReservation/</span>
+      </div>
+      <div class="tree-children" id="treeRoot">
+        <div class="file">├── 📄 Akhri.md</div>
+        <div class="file">├── 📄 index.html  <span class="star">Home page</span></div>
+        <div class="file">
+          ├── 📁 <span class="folder" onclick="toggleTreeChild(this)">▶ css/</span>
+          <div class="tree-children collapsed" style="padding-left:24px">
+            <div class="file">└── 📄 style.css</div>
+          </div>
+        </div>
+        <div class="file">
+          ├── 📁 <span class="folder" onclick="toggleTreeChild(this)">▶ java/</span>
+          <div class="tree-children collapsed" style="padding-left:24px">
+            <div class="file">├── 📄 <span class="highlight">HotelServer.java</span>  <span class="star">⭐ RUN THIS</span></div>
+            <div class="file">├── 📄 Room.java</div>
+            <div class="file">├── 📄 StandardRoom.java</div>
+            <div class="file">├── 📄 DeluxeRoom.java</div>
+            <div class="file">├── 📄 SuiteRoom.java</div>
+            <div class="file">├── 📄 Customer.java</div>
+            <div class="file">├── 📄 User.java</div>
+            <div class="file">├── 📄 Reservation.java</div>
+            <div class="file">└── 📄 HotelReservationSystem.java</div>
+          </div>
+        </div>
+        <div class="file">
+          ├── 📁 <span class="folder" onclick="toggleTreeChild(this)">▶ pages/</span>
+          <div class="tree-children collapsed" style="padding-left:24px">
+            <div class="file">├── 📄 login.html, signup.html</div>
+            <div class="file">├── 📄 rooms.html, reservation.html</div>
+            <div class="file">├── 📄 dashboard.html, admin.html</div>
+            <div class="file">├── 📄 receipt.html, hotel-info.html</div>
+          </div>
+        </div>
+        <div class="file">
+          ├── 📁 <span class="folder" onclick="toggleTreeChild(this)">▶ data/</span>
+          <div class="tree-children collapsed" style="padding-left:24px">
+            <div class="file">├── 📄 users.txt</div>
+            <div class="file">├── 📄 rooms.txt</div>
+            <div class="file">├── 📄 reservations.txt</div>
+            <div class="file">└── 📄 contacts.txt</div>
+          </div>
+        </div>
+        <div class="file">
+          └── 📁 <span class="folder" onclick="toggleTreeChild(this)">▶ presentation/</span>
+          <div class="tree-children collapsed" style="padding-left:24px">
+            <div class="file">├── 📄 installation-guide.html  <span class="star">🔵 You are here</span></div>
+            <div class="file">└── 📄 Group3_Kismaayo_Hotel_Presentation.pptx</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="help-box">
+      <div class="icon">💡</div>
+      <div class="text">
+        <strong>Need help?</strong> Ask the team leader or the Fedora user.
+        You can also read <code style="color:#C9A96E">Akhri.md</code> in the project folder for more details.
+      </div>
+    </div>
+
+  </div><!-- /content -->
+
+  <!-- ═══ FOOTER ═══ -->
+  <div class="footer">
+    Kismaayo Hotel  •  Group 3  •  University of Kismaayo  •  Semester 6  •  2026
+  </div>
+
+</div><!-- /page -->
+
+<script>
+// ── TOAST SYSTEM ─────────────────────────────────────────────
+
+function showToast(message, type = 'info') {
+  const container = document.getElementById('toastContainer');
+  const toast = document.createElement('div');
+  toast.className = `toast ${type}`;
+  toast.innerHTML = `<span class="toast-icon">${type === 'success' ? '✅' : 'ℹ️'}</span> ${message}`;
+  container.appendChild(toast);
+  setTimeout(() => {
+    toast.style.opacity = '0';
+    toast.style.transform = 'translateX(100px)';
+    toast.style.transition = 'all 0.3s ease';
+    setTimeout(() => toast.remove(), 300);
+  }, 2500);
+}
+
+// ── OS TAB SWITCHING ────────────────────────────────────────
+
+function switchOS(os, el) {
+  // Update tabs
+  document.querySelectorAll('.os-tab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  
+  // Update panels
+  document.querySelectorAll('.os-panel').forEach(p => p.classList.remove('active'));
+  document.getElementById('panel-' + os).classList.add('active');
+  
+  // Store preference
+  localStorage.setItem('preferredOS', os);
+  showToast(`Switched to ${os === 'windows' ? 'Windows' : 'Fedora Linux'} setup`, 'info');
+}
+
+// Restore OS preference
+const savedOS = localStorage.getItem('preferredOS');
+if (savedOS) {
+  const tab = document.querySelector(`.os-tab[data-os="${savedOS}"]`);
+  if (tab) switchOS(savedOS, tab);
+}
+
+// ── COPY COMMAND ────────────────────────────────────────────
+
+function copyCmd(el, text) {
+  navigator.clipboard.writeText(text).then(() => {
+    el.classList.add('copied');
+    const copySpan = el.querySelector('.cmd-copy');
+    if (copySpan) copySpan.textContent = '✅ Copied!';
+    showToast('Command copied to clipboard!', 'success');
+    setTimeout(() => {
+      el.classList.remove('copied');
+      if (copySpan) copySpan.textContent = '📋 Copy';
+    }, 2000);
+  }).catch(() => {
+    // Fallback
+    const textarea = document.createElement('textarea');
+    textarea.value = text;
+    document.body.appendChild(textarea);
+    textarea.select();
+    document.execCommand('copy');
+    document.body.removeChild(textarea);
+    showToast('Command copied!', 'success');
+  });
+}
+
+// Allow clicking anywhere on cmd to copy, or the copy button specifically
+document.addEventListener('click', function(e) {
+  const cmd = e.target.closest('.cmd');
+  if (cmd && !e.target.closest('.step-check')) {
+    const textSpan = cmd.querySelector('.cmd-text');
+    if (textSpan) {
+      copyCmd(cmd, textSpan.textContent.trim());
+    }
+  }
+});
+
+// ── STEP CHECKBOXES ─────────────────────────────────────────
+
+function toggleStepCheck(el, event) {
+  if (event) event.stopPropagation();
+  const checked = el.classList.toggle('checked');
+  
+  // Mark parent card
+  const card = el.closest('.step-card');
+  if (card) card.classList.toggle('done', checked);
+  
+  // Save to localStorage
+  const stepKey = getStepKey(card);
+  if (stepKey) {
+    const saved = JSON.parse(localStorage.getItem('setupSteps') || '{}');
+    saved[stepKey] = checked;
+    localStorage.setItem('setupSteps', JSON.stringify(saved));
+  }
+  
+  updateProgress();
+}
+
+function getStepKey(card) {
+  if (!card) return null;
+  const panel = card.closest('.os-panel');
+  const os = panel ? panel.id.replace('panel-', '') : 'windows';
+  const idx = card.dataset.step;
+  return `${os}-step-${idx}`;
+}
+
+function updateProgress() {
+  const allSteps = document.querySelectorAll('.step-card .step-check');
+  const checked = document.querySelectorAll('.step-card .step-check.checked');
+  const total = allSteps.length;
+  const done = checked.length;
+  
+  document.getElementById('progressCount').textContent = done;
+  document.getElementById('progressTotal').textContent = total;
+  
+  const pct = total > 0 ? Math.round((done / total) * 100) : 0;
+  document.getElementById('progressFill').style.width = pct + '%';
+}
+
+// Restore saved steps
+function restoreSteps() {
+  const saved = JSON.parse(localStorage.getItem('setupSteps') || '{}');
+  Object.entries(saved).forEach(([key, checked]) => {
+    // Find the corresponding check element
+    const [os, _, idx] = key.split('-');
+    const panel = document.getElementById('panel-' + os);
+    if (panel) {
+      const card = panel.querySelector(`.step-card[data-step="${idx}"]`);
+      if (card) {
+        const check = card.querySelector('.step-check');
+        if (check && checked) {
+          check.classList.add('checked');
+          card.classList.add('done');
+        }
+      }
+    }
+  });
+  updateProgress();
+}
+
+// ── VERIFICATION CHECKLIST ──────────────────────────────────
+
+function toggleVerify(el) {
+  const isDone = el.classList.toggle('done');
+  el.textContent = isDone ? '✅' : '⬜';
+  showToast(isDone ? '✓ Test passed!' : 'Test unchecked', isDone ? 'success' : 'info');
+  
+  // Count verification progress
+  const allVerifies = document.querySelectorAll('.v-table .v-status');
+  const doneVerifies = document.querySelectorAll('.v-table .v-status.done');
+  if (doneVerifies.length === allVerifies.length && allVerifies.length > 0) {
+    showToast('🎉 All checks passed! System is ready!', 'success');
+  }
+}
+
+// ── FILE TREE ───────────────────────────────────────────────
+
+function toggleTree(el) {
+  const children = el.parentElement.nextElementSibling;
+  if (children && children.classList) {
+    const isCollapsed = children.classList.toggle('collapsed');
+    el.classList.toggle('open');
+    el.textContent = isCollapsed ? '▶' : '▼';
+  }
+}
+
+function toggleTreeChild(el) {
+  const children = el.nextElementSibling;
+  if (children && children.classList) {
+    const isCollapsed = children.classList.toggle('collapsed');
+    el.textContent = isCollapsed ? '▶ ' : '▼ ';
+  }
+}
+
+// ── INTERSECTION OBSERVER FOR ANIMATIONS ────────────────────
+
+if ('IntersectionObserver' in window) {
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        entry.target.style.animationPlayState = 'running';
+      }
+    });
+  }, { threshold: 0.1 });
+  
+  document.querySelectorAll('.step-card').forEach(el => {
+    el.style.animation = 'slideIn 0.4s ease both';
+    el.style.animationPlayState = 'paused';
+    observer.observe(el);
+  });
+}
+
+// ── INIT ────────────────────────────────────────────────────
+
+restoreSteps();
+
+console.log('🛠 Kismaayo Hotel Installation Guide loaded');
+console.log('💡 Click any command block to copy it to clipboard');
+</script>
+</body>
+</html>

@@ -1,0 +1,78 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+    <title>Kismaayo Hotel - Sign Up</title>
+    <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+
+<table class="log-layout">
+<tr><td class="log-header">Kismaayo Hotel</td></tr>
+<tr><td class="log-body">
+
+<div class="log-box">
+<h2 style="border-bottom:2px solid #08c; padding-bottom:8px; margin-top:0;">Create Account</h2>
+<p style="color:#555;">Sameyso account cusub oo bilaash ah.</p>
+
+<form id="signupForm">
+<table style="width:100%;">
+<tr><td style="padding:4px; font-weight:bold;">Username:</td>
+    <td style="padding:4px;"><input type="text" id="username" style="width:200px;"></td></tr>
+<tr><td style="padding:4px; font-weight:bold;">Password:</td>
+    <td style="padding:4px;"><input type="text" id="password" style="width:200px;"></td></tr>
+<tr><td style="padding:4px; font-weight:bold;">Full Name:</td>
+    <td style="padding:4px;"><input type="text" id="fullname" style="width:200px;"></td></tr>
+<tr><td style="padding:4px; font-weight:bold;">Phone:</td>
+    <td style="padding:4px;"><input type="text" id="phone" style="width:200px;"></td></tr>
+<tr><td style="padding:4px; font-weight:bold;">Email:</td>
+    <td style="padding:4px;"><input type="text" id="email" style="width:200px;"></td></tr>
+<tr><td></td><td style="padding:4px;"><div id="signupError" class="error-msg"></div></td></tr>
+<tr><td></td><td style="padding:8px;"><input type="submit" value="Create Account" class="btn"></td></tr>
+</table>
+</form>
+
+<br>
+<p style="font-size:14px; color:#888; text-align:center;">
+Horey u lihid account? <a href="login.html" style="font-weight:bold;">Login</a>
+</p>
+</div>
+
+</td></tr>
+<tr><td class="log-footer">&copy; 2026 Kismaayo Hotel. All rights reserved.</td></tr>
+</table>
+
+<script>
+document.getElementById("signupForm").onsubmit = function(e) {
+    e.preventDefault();
+    var user = document.getElementById("username").value;
+    var pass = document.getElementById("password").value;
+    var name = document.getElementById("fullname").value;
+    var phone = document.getElementById("phone").value;
+    var email = document.getElementById("email").value;
+    var errDiv = document.getElementById("signupError");
+    errDiv.textContent = "";
+
+    var xhr = new XMLHttpRequest();
+    xhr.open("POST", "/api/signup", true);
+    xhr.setRequestHeader("Content-Type", "application/json");
+    xhr.onreadystatechange = function() {
+        if (xhr.readyState === 4) {
+            if (xhr.status === 200) {
+                var res = JSON.parse(xhr.responseText);
+                if (res.success) {
+                    alert("Account created! Now login.");
+                    window.location.href = "login.html";
+                } else {
+                    errDiv.textContent = res.error;
+                }
+            } else {
+                errDiv.textContent = "Server error!";
+            }
+        }
+    };
+    xhr.send(JSON.stringify({username: user, password: pass, name: name, phone: phone, email: email}));
+};
+</script>
+
+</body>
+</html>

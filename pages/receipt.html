@@ -1,0 +1,140 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+    <title>Kismaayo Hotel - Booking Receipt</title>
+    <link rel="stylesheet" href="../css/style.css">
+    <style>
+    @media print {
+        .no-print { display: none; }
+        .receipt-box { border: 2px solid #000; }
+    }
+    .receipt-box {
+        background: #fff;
+        border: 2px solid #bcd;
+        padding: 30px;
+        max-width: 500px;
+        margin: 0 auto;
+    }
+    .receipt-box h2 {
+        color: #333;
+        border-bottom: 2px solid #08c;
+        text-align: center;
+    }
+    .receipt-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 15px 0;
+    }
+    .receipt-table td {
+        padding: 6px 10px;
+        border-bottom: 1px dotted #bcd;
+        font-size: 14px;
+    }
+    .receipt-table td.label {
+        font-weight: bold;
+        color: #333;
+        width: 120px;
+    }
+    .receipt-footer {
+        text-align: center;
+        color: #888;
+        font-size: 12px;
+        margin-top: 20px;
+        border-top: 1px solid #cccccc;
+        padding-top: 10px;
+    }
+    </style>
+</head>
+<body>
+
+<script>
+if (!localStorage.getItem("hotelUser")) {
+    window.location.href = "login.html";
+}
+</script>
+
+<table class="layout">
+<tr><td class="header" colspan="2">Kismaayo Hotel - Booking Receipt</td></tr>
+<tr><td class="nav no-print" colspan="2">
+    <a href="../index.html">Home</a>
+    <a href="rooms.html">Rooms</a>
+    <a href="reservation.html">Book Now</a>
+    <a href="dashboard.html">Dashboard</a>
+    <a href="admin.html">Admin</a>
+    <a href="hotel-info.html">About</a>
+</td></tr>
+<tr>
+<td class="sidebar no-print">
+    <h3>Actions</h3>
+    <a href="dashboard.html">My Bookings</a>
+    <a href="reservation.html">Book Another</a>
+    <br>
+    <input type="button" value="Print Receipt" class="btn btn-small" onclick="window.print()">
+</td>
+<td class="content">
+
+<h2 class="no-print">Booking Receipt</h2>
+
+<div id="receiptContent">
+<p style="color:#888; text-align:center;">Loading receipt...</p>
+</div>
+
+<div class="no-print" style="text-align:center; margin-top:15px;">
+    <a href="dashboard.html" class="btn btn-small">Back to Dashboard</a>
+    <a href="reservation.html" class="btn btn-small">Book Another Room</a>
+</div>
+
+</td>
+</tr>
+<tr><td class="footer" colspan="2">&copy; 2026 Kismaayo Hotel. All rights reserved.</td></tr>
+</table>
+
+<script>
+function loadReceipt() {
+    var params = new URLSearchParams(window.location.search);
+    var id = params.get('id');
+
+    if (!id) {
+        document.getElementById("receiptContent").innerHTML = '<p style="color:#cc0000; text-align:center;">Error: No booking ID specified.</p>';
+        return;
+    }
+
+    var xhr = new XMLHttpRequest();
+    xhr.open("GET", "/api/booking?id=" + encodeURIComponent(id), true);
+    xhr.onreadystatechange = function() {
+        if (xhr.readyState === 4 && xhr.status === 200) {
+            var res = JSON.parse(xhr.responseText);
+            if (res.success) {
+                var b = res.booking;
+                var html = '<div class="receipt-box">';
+                html += '<h2>Reservation Receipt</h2>';
+                html += '<p style="text-align:center; color:#08c; font-weight:bold;">Booking Confirmed!</p>';
+                html += '<table class="receipt-table">';
+                html += '<tr><td class="label">Reservation ID:</td><td>' + b.id + '</td></tr>';
+                html += '<tr><td class="label">Guest Name:</td><td>' + b.name + '</td></tr>';
+                html += '<tr><td class="label">Room Type:</td><td>' + b.roomType + '</td></tr>';
+                html += '<tr><td class="label">Check-In:</td><td>' + b.checkin + '</td></tr>';
+                html += '<tr><td class="label">Check-Out:</td><td>' + b.checkout + '</td></tr>';
+                html += '<tr><td class="label">Guests:</td><td>' + b.guests + '</td></tr>';
+                html += '<tr><td class="label">Phone:</td><td>' + b.phone + '</td></tr>';
+                html += '<tr><td class="label">Email:</td><td>' + b.email + '</td></tr>';
+                html += '</table>';
+                html += '<div class="receipt-footer">';
+                html += 'Kismaayo Hotel - Kismaayo, Somalia<br>';
+                html += 'Phone: +252 61 234 5678 | Email: info@kismaayohotel.com';
+                html += '</div>';
+                html += '</div>';
+                document.getElementById("receiptContent").innerHTML = html;
+            } else {
+                document.getElementById("receiptContent").innerHTML = '<p style="color:#cc0000; text-align:center;">Error: ' + res.error + '</p>';
+            }
+        }
+    };
+    xhr.send();
+}
+
+loadReceipt();
+</script>
+
+</body>
+</html>

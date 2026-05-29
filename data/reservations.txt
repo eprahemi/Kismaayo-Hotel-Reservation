@@ -1,0 +1,1 @@
+1|admin|Admin|Deluxe|2026-05-07|2026-05-13|1|000|admin@hotel.com

@@ -1,0 +1,515 @@
+/* ============================================
+   Kismaayo Hotel — Arch Linux inspired style
+   Clean, minimal, 2007-era table layout
+   ============================================ */
+
+/* ---- Reset & Base ---- */
+* {
+    margin: 0;
+    padding: 0;
+    line-height: 1.4;
+}
+
+html, body {
+    height: 100%;
+    background: #f6f9fc;
+    color: #222;
+    font: normal 100% sans-serif;
+    margin: 0;
+    padding: 0;
+}
+
+a {
+    text-decoration: none;
+}
+a:link, a:visited {
+    color: #08c;
+}
+a:hover, a:focus {
+    color: #08c;
+    text-decoration: underline;
+}
+
+p {
+    margin: 0.33em 0 1em;
+}
+
+/* ---- Main Layout Table (full screen) ---- */
+table.layout {
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    border-collapse: collapse;
+    background: #fff;
+    text-align: left;
+    border: none;
+}
+
+/* ---- Header (Arch navbar look) ---- */
+td.header {
+    background: #333;
+    color: #fff;
+    padding: 12px 20px;
+    text-align: left;
+    font-size: 22px;
+    font-weight: bold;
+    border-bottom: 5px solid #08c;
+    letter-spacing: 0.5px;
+}
+
+/* ---- Navigation (right-aligned, Arch style) ---- */
+td.nav {
+    background: #333;
+    padding: 6px 20px;
+    text-align: right;
+    border-bottom: none;
+    font-size: 0;
+}
+
+td.nav a {
+    color: #999;
+    text-decoration: none;
+    padding: 5px 12px;
+    font-size: 13px;
+    font-weight: bold;
+    display: inline-block;
+}
+
+td.nav a:hover {
+    color: #fff;
+    text-decoration: underline;
+    background: transparent;
+}
+
+td.nav a.active {
+    color: #fff;
+    background: transparent;
+}
+
+/* ---- Sidebar (Arch right-column style, but on left) ---- */
+td.sidebar {
+    width: 280px;
+    height: 100%;
+    background: #f6f9fc;
+    padding: 15px;
+    vertical-align: top;
+    border-right: 1px solid #dde6ed;
+}
+
+td.sidebar h3 {
+    color: #333;
+    font-size: 15px;
+    font-weight: bold;
+    border-bottom: 1px solid #bcd;
+    padding-bottom: 4px;
+    margin: 15px 0 6px 0;
+}
+td.sidebar h3:first-child {
+    margin-top: 0;
+}
+
+td.sidebar a {
+    color: #08c;
+    text-decoration: none;
+    display: block;
+    padding: 3px 0;
+    font-size: 13px;
+}
+td.sidebar a:hover {
+    text-decoration: underline;
+}
+
+td.sidebar p {
+    color: #555;
+    font-size: 13px;
+    margin: 0.3em 0;
+}
+
+/* ---- Main Content ---- */
+td.content {
+    height: 100%;
+    padding: 15px 20px;
+    vertical-align: top;
+    font-size: 0.812em; /* Arch default ~13px */
+}
+
+td.content h2 {
+    color: #333;
+    font-size: 1.5em;
+    border-bottom: 1px solid #888;
+    padding-bottom: 4px;
+    margin: 0 0 0.5em 0;
+    font-weight: bold;
+}
+
+td.content h3 {
+    color: #333;
+    font-size: 1.25em;
+    margin: 0.5em 0 0.3em 0;
+    font-weight: bold;
+}
+
+td.content h4 {
+    font-size: 1.15em;
+    margin-top: 0.8em;
+}
+
+/* ---- Footer (Arch style, clean & simple) ---- */
+td.footer {
+    background: #333;
+    color: #999;
+    padding: 12px 20px;
+    text-align: center;
+    font-size: 0.85em;
+    border-top: 3px solid #08c;
+}
+
+/* ---- Hero Welcome Section (Arch box style) ---- */
+.welcome {
+    background: #ecf2f5;
+    border: 1px solid #bcd;
+    padding: 15px;
+    margin-bottom: 15px;
+    text-align: center;
+}
+
+.welcome h2 {
+    color: #333;
+    font-size: 1.5em;
+    border: none;
+    margin: 0 0 8px 0;
+}
+
+.welcome p {
+    color: #555;
+    font-size: 14px;
+}
+
+/* ---- Buttons (Arch minimal style) ---- */
+.btn {
+    display: inline-block;
+    background: #ecf2f5;
+    color: #08c;
+    padding: 5px 16px;
+    text-decoration: none;
+    font-weight: bold;
+    font-size: 13px;
+    border: 1px solid #bcd;
+    cursor: pointer;
+    font-family: sans-serif;
+}
+
+.btn:hover {
+    background: #08c;
+    color: #fff;
+    border-color: #08c;
+    text-decoration: none;
+}
+
+.btn-small {
+    padding: 3px 10px;
+    font-size: 12px;
+}
+
+.btn-full {
+    display: block;
+    width: 100%;
+    text-align: center;
+}
+
+/* ---- Room Cards (Arch box style) ---- */
+.room-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 15px;
+}
+
+.room-table td {
+    border: 1px solid #bcd;
+    padding: 10px;
+    vertical-align: top;
+    background: #ecf2f5;
+}
+
+.room-table td.room-img {
+    width: 100px;
+    background: #08c;
+    color: #fff;
+    text-align: center;
+    font-weight: bold;
+    font-size: 16px;
+}
+
+.room-table h3 {
+    margin: 0 0 5px 0;
+    color: #333;
+    font-size: 1.2em;
+}
+
+.price {
+    color: #cc6600;
+    font-size: 20px;
+    font-weight: bold;
+}
+
+.price span {
+    font-size: 12px;
+    color: #888;
+    font-weight: normal;
+}
+
+.room-features {
+    margin: 8px 0;
+    padding-left: 20px;
+    font-size: 13px;
+}
+
+/* ---- Forms (Arch style) ---- */
+.form-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.form-table td {
+    padding: 5px 8px;
+    font-size: 13px;
+}
+
+.form-table td.label {
+    width: 130px;
+    font-weight: bold;
+    color: #333;
+}
+
+input, select, textarea {
+    padding: 4px 6px;
+    border: 1px solid #bcd;
+    font-size: 13px;
+    font-family: sans-serif;
+    background: #fff;
+}
+
+input:focus, select:focus, textarea:focus {
+    border-color: #08c;
+    background: #fff;
+}
+
+textarea {
+    font-family: sans-serif;
+}
+
+/* ---- Data Tables (Arch pretty2 style) ---- */
+.data-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 10px 0;
+    border: 1px solid #bbb;
+}
+
+.data-table th {
+    background: #eee;
+    color: #333;
+    padding: 6px 8px;
+    border: 1px solid #bbb;
+    font-size: 12px;
+    font-weight: bold;
+}
+
+.data-table td {
+    padding: 5px 8px;
+    border: 1px dotted #bbb;
+    font-size: 13px;
+}
+
+.data-table tr:nth-child(odd) {
+    background: #fff;
+}
+
+.data-table tr:nth-child(even) {
+    background: #f6f9fc;
+}
+
+.data-table tr:hover {
+    background: #ffd;
+}
+
+/* ---- Confirmation Box ---- */
+.confirm-box {
+    background: #ecf2f5;
+    border: 2px solid #08c;
+    padding: 20px;
+    text-align: center;
+    margin: 15px 0;
+}
+
+.confirm-box h3 {
+    color: #08c;
+    font-size: 1.4em;
+    border: none;
+    margin: 0 0 10px 0;
+}
+
+/* ---- Error Messages ---- */
+.error-msg {
+    color: #cc0000;
+    font-size: 13px;
+    margin: 5px 0;
+}
+
+/* ---- Info Box (Arch box style) ---- */
+.info-box {
+    background: #ecf2f5;
+    border: 1px solid #bcd;
+    padding: 12px 15px;
+    margin: 12px 0;
+}
+
+.info-box h3 {
+    color: #333;
+    border-bottom: 1px solid #bcd;
+    padding-bottom: 4px;
+    margin-top: 0;
+    font-size: 1.1em;
+}
+
+/* ---- Quick Links ---- */
+.quick-links {
+    margin-top: 15px;
+}
+.quick-links a {
+    color: #08c;
+    text-decoration: none;
+}
+.quick-links a:hover {
+    text-decoration: underline;
+}
+
+/* ---- Login-only Pages (centered, no nav/sidebar) ---- */
+table.log-layout {
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    border-collapse: collapse;
+    background: #f6f9fc;
+    border: none;
+    text-align: center;
+}
+
+table.log-layout td.log-header {
+    background: #333;
+    color: #fff;
+    padding: 18px 20px;
+    text-align: center;
+    font-size: 26px;
+    font-weight: bold;
+    border-bottom: 5px solid #08c;
+}
+
+table.log-layout td.log-body {
+    height: 100%;
+    padding: 50px 20px;
+    text-align: center;
+    vertical-align: middle;
+}
+
+table.log-layout td.log-body .log-box {
+    display: inline-block;
+    text-align: left;
+    width: 400px;
+    max-width: 90%;
+    background: #ecf2f5;
+    border: 1px solid #bcd;
+    padding: 25px;
+    margin: 0 auto;
+}
+
+table.log-layout td.log-body .log-box h2 {
+    color: #333;
+    border-bottom: 1px solid #08c;
+}
+
+table.log-layout td.log-body .log-box p {
+    color: #555;
+}
+
+table.log-layout td.log-footer {
+    background: #333;
+    color: #999;
+    padding: 10px;
+    text-align: center;
+    font-size: 0.85em;
+    border-top: 3px solid #08c;
+}
+
+/* ---- Receipt Page Fixes ---- */
+.receipt-box {
+    background: #fff;
+    border: 2px solid #bcd;
+    padding: 30px;
+    max-width: 500px;
+    margin: 0 auto;
+}
+.receipt-box h2 {
+    color: #333;
+    border-bottom: 1px solid #08c;
+    text-align: center;
+}
+.receipt-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 15px 0;
+}
+.receipt-table td {
+    padding: 6px 10px;
+    border-bottom: 1px dotted #bcd;
+    font-size: 13px;
+}
+.receipt-table td.label {
+    font-weight: bold;
+    color: #333;
+    width: 120px;
+}
+
+/* ---- Cost Table (reservation slider page) ---- */
+.cost-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 10px 0;
+    border: 1px solid #bbb;
+}
+.cost-table th {
+    background: #eee;
+    color: #333;
+    padding: 5px 8px;
+    border: 1px solid #bbb;
+    font-size: 12px;
+}
+.cost-table td {
+    padding: 4px 8px;
+    border: 1px dotted #bbb;
+    font-size: 13px;
+}
+.cost-table tr:nth-child(odd) {
+    background: #fff;
+}
+.cost-table tr:nth-child(even) {
+    background: #f6f9fc;
+}
+.cost-table .total-row {
+    font-weight: bold;
+    background: #ecf2f5 !important;
+    font-size: 14px;
+    color: #333;
+}
+.cost-table .free-night {
+    color: #336633;
+    font-weight: bold;
+}
+
+.slider-val {
+    display: inline-block;
+    font-weight: bold;
+    font-size: 18px;
+    color: #08c;
+    min-width: 30px;
+}

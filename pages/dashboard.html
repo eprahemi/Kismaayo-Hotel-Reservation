@@ -1,0 +1,168 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+    <title>Kismaayo Hotel - Dashboard</title>
+    <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+
+<script>
+if (!localStorage.getItem("hotelUser")) {
+    window.location.href = "login.html";
+}
+</script>
+
+<table class="layout">
+<tr><td class="header" colspan="2">Kismaayo Hotel - Dashboard</td></tr>
+<tr><td class="nav" colspan="2">
+    <a href="../index.html">Home</a>
+    <a href="rooms.html">Rooms</a>
+    <a href="reservation.html">Book Now</a>
+    <a href="dashboard.html" class="active">Dashboard</a>
+    <a href="admin.html">Admin</a>
+    <a href="hotel-info.html">About</a>
+</td></tr>
+<tr>
+<td class="sidebar">
+    <h3>Menu</h3>
+    <a href="reservation.html">Book a Room</a>
+    <a href="../index.html">Home</a>
+</td>
+<td class="content">
+
+<h2 id="dashTitle">My Dashboard</h2>
+
+<!-- =========== MY BOOKINGS =========== -->
+<div class="info-box">
+<h3>My Bookings</h3>
+<div id="bookingList">
+<p style="color:#888;">Loading bookings...</p>
+</div>
+<br>
+<a href="reservation.html" class="btn btn-small">Book New Room</a>
+<a href="#" id="logoutBtn2" class="btn btn-small">Logout</a>
+</div>
+
+<br>
+
+<!-- =========== EDIT PROFILE =========== -->
+<div class="info-box">
+<h3>Edit Profile</h3>
+<form id="profileForm">
+<table class="form-table">
+<tr><td class="label">Full Name:</td><td><input type="text" id="profName" style="width:250px;"></td></tr>
+<tr><td class="label">Phone:</td><td><input type="text" id="profPhone" style="width:250px;"></td></tr>
+<tr><td class="label">Email:</td><td><input type="text" id="profEmail" style="width:250px;"></td></tr>
+<tr><td></td><td><div id="profMsg" class="error-msg"></div></td></tr>
+<tr><td></td><td><input type="submit" value="Update Profile" class="btn"></td></tr>
+</table>
+</form>
+</div>
+
+</td>
+</tr>
+<tr><td class="footer" colspan="2">&copy; 2026 Kismaayo Hotel. All rights reserved.</td></tr>
+</table>
+
+<script>
+var user = JSON.parse(localStorage.getItem("hotelUser"));
+if (user) {
+    document.getElementById("dashTitle").textContent = "My Dashboard - " + user.name;
+    document.getElementById("profName").value = user.name || "";
+    document.getElementById("profPhone").value = user.phone || "";
+    document.getElementById("profEmail").value = user.email || "";
+}
+
+// ============ LOAD BOOKINGS ============
+function loadBookings() {
+    var xhr = new XMLHttpRequest();
+    xhr.open("GET", "/api/bookings?username=" + encodeURIComponent(user.username), true);
+    xhr.onreadystatechange = function() {
+        if (xhr.readyState === 4 && xhr.status === 200) {
+            var res = JSON.parse(xhr.responseText);
+            if (res.success) {
+                var bookings = res.bookings;
+                var html = "";
+                if (bookings.length === 0) {
+                    html = '<p style="color:#888;">Wax booking ah ma lihid.</p>';
+                } else {
+                    html = '<table class="data-table">';
+                    html += '<tr><th>ID</th><th>Room Type</th><th>Check-In</th><th>Check-Out</th><th>Guests</th><th>Action</th></tr>';
+                    for (var i = 0; i < bookings.length; i++) {
+                        var b = bookings[i];
+                        html += '<tr><td>' + b.id + '</td><td>' + b.roomType + '</td><td>' + b.checkin + '</td><td>' + b.checkout + '</td><td>' + b.guests + '</td>';
+                        html += '<td><input type="button" value="Cancel" class="btn btn-small" onclick="cancelBooking(\'' + b.id + '\')"></td></tr>';
+                    }
+                    html += '</table>';
+                }
+                document.getElementById("bookingList").innerHTML = html;
+            }
+        }
+    };
+    xhr.send();
+}
+
+loadBookings();
+
+// ============ CANCEL BOOKING ============
+function cancelBooking(id) {
+    if (!confirm("Ma hubtaa inaad tirtirto booking ID " + id + "?")) return;
+
+    var xhr = new XMLHttpRequest();
+    xhr.open("POST", "/api/bookings/delete", true);
+    xhr.setRequestHeader("Content-Type", "application/json");
+    xhr.onreadystatechange = function() {
+        if (xhr.readyState === 4 && xhr.status === 200) {
+            var res = JSON.parse(xhr.responseText);
+            if (res.success) {
+                loadBookings();
+            } else {
+                alert(res.error);
+            }
+        }
+    };
+    xhr.send(JSON.stringify({id: id}));
+}
+
+// ============ EDIT PROFILE ============
+document.getElementById("profileForm").onsubmit = function(e) {
+    e.preventDefault();
+    var name = document.getElementById("profName").value;
+    var phone = document.getElementById("profPhone").value;
+    var email = document.getElementById("profEmail").value;
+    var msg = document.getElementById("profMsg");
+    msg.textContent = "";
+
+    var xhr = new XMLHttpRequest();
+    xhr.open("POST", "/api/user/update", true);
+    xhr.setRequestHeader("Content-Type", "application/json");
+    xhr.onreadystatechange = function() {
+        if (xhr.readyState === 4 && xhr.status === 200) {
+            var res = JSON.parse(xhr.responseText);
+            if (res.success) {
+                msg.style.color = "#08c";
+                msg.textContent = "Profile updated!";
+                // Update localStorage
+                user.name = name || user.name;
+                user.phone = phone || user.phone;
+                user.email = email || user.email;
+                localStorage.setItem("hotelUser", JSON.stringify(user));
+                document.getElementById("dashTitle").textContent = "My Dashboard - " + user.name;
+            } else {
+                msg.style.color = "#cc0000";
+                msg.textContent = res.error;
+            }
+        }
+    };
+    xhr.send(JSON.stringify({username: user.username, name: name, phone: phone, email: email}));
+};
+
+// ============ LOGOUT ============
+document.getElementById("logoutBtn2").onclick = function() {
+    localStorage.removeItem("hotelUser");
+    window.location.href = "login.html";
+};
+</script>
+
+</body>
+</html>

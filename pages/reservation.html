@@ -1,0 +1,372 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+    <title>Kismaayo Hotel - Book a Room</title>
+    <link rel="stylesheet" href="../css/style.css">
+    <style>
+    /* Slider styling */
+    input[type=range] {
+        width: 250px;
+        cursor: pointer;
+        vertical-align: middle;
+    }
+    .slider-val {
+        display: inline-block;
+        font-weight: bold;
+        font-size: 18px;
+        color: #08c;
+        min-width: 30px;
+    }
+    .cost-table .free-night {
+        color: #08c;
+        font-weight: bold;
+    }
+    </style>
+</head>
+<body>
+
+<script>
+if (!localStorage.getItem("hotelUser")) {
+    window.location.href = "login.html";
+}
+</script>
+
+<table class="layout">
+<tr><td class="header" colspan="2">Kismaayo Hotel - Book a Room</td></tr>
+<tr><td class="nav" colspan="2">
+    <a href="../index.html">Home</a>
+    <a href="rooms.html">Rooms</a>
+    <a href="reservation.html" class="active">Book Now</a>
+    <a href="dashboard.html">Dashboard</a>
+    <a href="admin.html">Admin</a>
+    <a href="hotel-info.html">About</a>
+</td></tr>
+<tr>
+<td class="sidebar">
+    <h3>Room Prices</h3>
+    <p style="font-size:13px;">
+    Standard: $50/night<br>
+    Deluxe: $80/night<br>
+    Suite: $120/night
+    </p>
+    <h3>Quick Links</h3>
+    <a href="rooms.html">View Rooms</a>
+</td>
+<td class="content">
+
+<h2>Book a Room</h2>
+
+<div class="info-box" style="max-width:550px;">
+<form id="reservationForm">
+<h3>Personal Info</h3>
+<table class="form-table">
+<tr><td class="label">Full Name:</td><td><input type="text" id="fullName" style="width:250px;"></td></tr>
+<tr><td class="label">Phone:</td><td><input type="text" id="phone" style="width:250px;"></td></tr>
+<tr><td class="label">Email:</td><td><input type="text" id="email" style="width:250px;"></td></tr>
+</table>
+
+<h3>Room Details</h3>
+<table class="form-table">
+<tr><td class="label">Room Type:</td>
+<td>
+    <select id="roomType" onchange="updatePricing()" style="width:250px;">
+        <option value="">-- Loading rooms... --</option>
+    </select>
+</td></tr>
+</table>
+
+<h3>Stay Dates</h3>
+<table class="form-table">
+<tr><td class="label">Check-In:</td><td><input type="date" id="checkIn" onchange="updatePricing()" style="width:250px;"></td></tr>
+<tr><td class="label">Nights:</td>
+<td>
+    <div style="margin-bottom:6px;">
+        <input type="range" id="nightsSlider" min="1" max="30" value="1" oninput="updatePricing()">
+        <span class="slider-val" id="nightsDisplay">1</span>
+    </div>
+    <div id="sliderPriceBox" style="display:none; background:#ecf2f5; border:1px solid #bcd; padding:6px 12px; margin-bottom:6px; font-size:14px;">
+        <strong>Total:</strong> <span id="sliderTotalPrice" style="color:#08c; font-size:22px; font-weight:bold;">$0</span>
+        <span style="color:#888; font-size:12px;">(doubles each night!)</span>
+    </div>
+</td></tr>
+<tr><td class="label">Check-Out:</td><td><span id="checkOutDisplay" style="font-weight:bold;"></span></td></tr>
+<tr><td class="label">Guests:</td><td><input type="number" id="guests" min="1" max="4" value="1" style="width:80px;"></td></tr>
+</table>
+
+<!-- Cost Breakdown -->
+<div id="costBreakdown" style="display:none;">
+<h3>Cost Breakdown <span style="font-size:12px; color:#cc6600;">(doubles each night!)</span></h3>
+<table class="cost-table" id="costTable">
+<thead>
+<tr><th>Night</th><th>Cost</th><th>Running Total</th></tr>
+</thead>
+<tbody id="costBody"></tbody>
+</table>
+<p style="text-align:right; font-size:16px; font-weight:bold; margin:5px 10px 0 0;">
+    Grand Total: <span id="grandTotal" style="font-size:22px;">$0</span>
+</p>
+</div>
+
+<br>
+
+<!-- Check Availability button -->
+<div style="margin-bottom:10px;">
+<input type="button" value="Check Availability" class="btn" onclick="checkAvailability()">
+<span id="availMsg" style="font-weight:bold;font-size:14px;margin-left:10px;"></span>
+</div>
+
+<div id="bookError" class="error-msg" style="margin-bottom:8px;"></div>
+<input type="submit" value="Confirm Booking" class="btn">
+</form>
+</div>
+
+<div id="confirmationMessage" class="confirm-box" style="display:none;">
+    <h3>Booking Confirmed!</h3>
+    <p>Thanks, <span id="confirmName"></span>!</p>
+    <p><span id="confirmRoom"></span></p>
+    <p><span id="confirmCheckIn"></span> to <span id="confirmCheckOut"></span></p>
+    <p>Reservation ID: <span id="confirmId"></span></p>
+    <br>
+    <a href="dashboard.html" class="btn btn-small">View My Bookings</a>
+    <a href="#" id="printReceiptBtn" class="btn btn-small">Print Receipt</a>
+</div>
+
+</td>
+</tr>
+<tr><td class="footer" colspan="2">&copy; 2026 Kismaayo Hotel. All rights reserved.</td></tr>
+</table>
+
+<script>
+var user = JSON.parse(localStorage.getItem("hotelUser"));
+if (user && user.name) {
+    document.getElementById("fullName").value = user.name;
+}
+if (user && user.phone) {
+    document.getElementById("phone").value = user.phone;
+}
+if (user && user.email) {
+    document.getElementById("email").value = user.email;
+}
+
+// Room prices cache: { "Standard": 50, "Deluxe": 80, ... }
+var roomPrices = {};
+
+/* Load room types from server */
+function loadRoomTypes() {
+    var xhr = new XMLHttpRequest();
+    xhr.open("GET", "/api/rooms", true);
+    xhr.onreadystatechange = function() {
+        if (xhr.readyState === 4 && xhr.status === 200) {
+            var res = JSON.parse(xhr.responseText);
+            if (res.success) {
+                var sel = document.getElementById('roomType');
+                sel.innerHTML = '<option value="">-- Select --</option>';
+                for (var i = 0; i < res.rooms.length; i++) {
+                    var opt = document.createElement('option');
+                    opt.value = res.rooms[i].name;
+                    opt.text = res.rooms[i].name + ' - $' + res.rooms[i].price;
+                    opt.setAttribute('data-price', res.rooms[i].price);
+                    sel.appendChild(opt);
+                    roomPrices[res.rooms[i].name] = parseInt(res.rooms[i].price);
+                }
+
+                /* Auto-select room from URL ?room=type */
+                var params = new URLSearchParams(window.location.search);
+                var room = params.get('room');
+                if (room) {
+                    for (var j = 0; j < sel.options.length; j++) {
+                        if (sel.options[j].value.toLowerCase() === room.toLowerCase()) {
+                            sel.options[j].selected = true;
+                            break;
+                        }
+                    }
+                }
+                updatePricing();
+            }
+        }
+    };
+    xhr.send();
+}
+
+loadRoomTypes();
+
+/* Auto-select room from URL (after load) */
+var params = new URLSearchParams(window.location.search);
+var room = params.get('room');
+if (room) {
+    var sel = document.getElementById('roomType');
+    for (var i = 0; i < sel.options.length; i++) {
+        if (sel.options[i].value.toLowerCase() === room.toLowerCase()) {
+            sel.options[i].selected = true;
+            break;
+        }
+    }
+}
+
+// ============ UPDATE PRICING (slider + cost breakdown) ============
+function updatePricing() {
+    var sel = document.getElementById('roomType');
+    var selectedOpt = sel.options[sel.selectedIndex];
+    var price = selectedOpt && selectedOpt.getAttribute('data-price') ? parseInt(selectedOpt.getAttribute('data-price')) : 0;
+
+    var nights = parseInt(document.getElementById('nightsSlider').value);
+    document.getElementById('nightsDisplay').textContent = nights;
+
+    // Calculate check-out date
+    var checkInEl = document.getElementById('checkIn');
+    var checkInVal = checkInEl.value;
+    var checkOutDisplay = document.getElementById('checkOutDisplay');
+
+    if (checkInVal && nights > 0) {
+        var d = new Date(checkInVal);
+        d.setDate(d.getDate() + nights);
+        var y = d.getFullYear();
+        var m = String(d.getMonth() + 1).padStart(2, '0');
+        var day = String(d.getDate()).padStart(2, '0');
+        checkOutDisplay.textContent = y + '-' + m + '-' + day;
+    } else {
+        checkOutDisplay.textContent = '--';
+    }
+
+    // Calculate total (doubling each night)
+    var runningTotal = 0;
+    var nightCost = price;
+    for (var i = 1; i <= nights; i++) {
+        runningTotal += nightCost;
+        nightCost *= 2;
+    }
+
+    // Update price box above the slider
+    var sliderPriceBox = document.getElementById('sliderPriceBox');
+    var sliderTotalPrice = document.getElementById('sliderTotalPrice');
+    if (price > 0 && checkInVal) {
+        sliderPriceBox.style.display = 'block';
+        sliderTotalPrice.textContent = '$' + runningTotal.toLocaleString();
+    } else {
+        sliderPriceBox.style.display = 'none';
+    }
+
+    // Build cost breakdown table
+    var costBody = document.getElementById('costBody');
+    var costDiv = document.getElementById('costBreakdown');
+    var grandTotalSpan = document.getElementById('grandTotal');
+
+    if (price === 0 || !checkInVal || nights === 0) {
+        costDiv.style.display = 'none';
+        return;
+    }
+
+    costDiv.style.display = 'block';
+    var html = '';
+    var displayTotal = 0;
+    nightCost = price; // reset
+
+    for (var i = 1; i <= nights; i++) {
+        displayTotal += nightCost;
+        html += '<tr>';
+        html += '<td>Night ' + i + '</td>';
+        html += '<td>$' + nightCost.toLocaleString() + '</td>';
+        html += '<td>$' + displayTotal.toLocaleString() + '</td>';
+        html += '</tr>';
+        nightCost *= 2;
+    }
+
+    // Add total row
+    html += '<tr class="total-row"><td colspan="2" style="text-align:right;">Total for ' + nights + ' night' + (nights > 1 ? 's' : '') + ':</td><td>$' + runningTotal.toLocaleString() + '</td></tr>';
+
+    costBody.innerHTML = html;
+    grandTotalSpan.textContent = '$' + runningTotal.toLocaleString();
+}
+
+// ============ CHECK AVAILABILITY ============
+function checkAvailability() {
+    var roomType = document.getElementById("roomType").value;
+    var checkIn = document.getElementById("checkIn").value;
+    var nights = parseInt(document.getElementById('nightsSlider').value);
+    var checkOut = document.getElementById("checkOutDisplay").textContent;
+    var availMsg = document.getElementById("availMsg");
+    availMsg.textContent = "";
+
+    if (!roomType || !checkIn || !nights) {
+        availMsg.style.color = "#cc0000";
+        availMsg.textContent = "Fadlan dooro Room Type, Check-In iyo Nights!";
+        return;
+    }
+
+    availMsg.textContent = "Checking...";
+    availMsg.style.color = "#555";
+
+    var xhr = new XMLHttpRequest();
+    xhr.open("POST", "/api/availability", true);
+    xhr.setRequestHeader("Content-Type", "application/json");
+    xhr.onreadystatechange = function() {
+        if (xhr.readyState === 4 && xhr.status === 200) {
+            var res = JSON.parse(xhr.responseText);
+            if (res.success) {
+                if (res.available) {
+                    availMsg.style.color = "#08c";
+                    availMsg.textContent = "Room is available!";
+                } else {
+                    availMsg.style.color = "#cc0000";
+                    availMsg.textContent = "Room is not available for those dates.";
+                }
+            } else {
+                availMsg.style.color = "#cc0000";
+                availMsg.textContent = res.error;
+            }
+        }
+    };
+    xhr.send(JSON.stringify({roomType: roomType, checkin: checkIn, checkout: checkOut}));
+}
+
+// ============ SUBMIT BOOKING ============
+document.getElementById("reservationForm").onsubmit = function(e) {
+    e.preventDefault();
+    var name = document.getElementById("fullName").value;
+    var phone = document.getElementById("phone").value;
+    var email = document.getElementById("email").value;
+    var roomType = document.getElementById("roomType").value;
+    var checkIn = document.getElementById("checkIn").value;
+    var checkOut = document.getElementById("checkOutDisplay").textContent;
+    var guests = document.getElementById("guests").value;
+    var errDiv = document.getElementById("bookError");
+    errDiv.textContent = "";
+
+    if (!roomType || !checkIn || !checkOut || checkOut === '--') {
+        errDiv.textContent = "Fadlan buuxi Room Type, Check-In iyo Nights!";
+        return;
+    }
+
+    var xhr = new XMLHttpRequest();
+    xhr.open("POST", "/api/book", true);
+    xhr.setRequestHeader("Content-Type", "application/json");
+    xhr.onreadystatechange = function() {
+        if (xhr.readyState === 4) {
+            if (xhr.status === 200) {
+                var res = JSON.parse(xhr.responseText);
+                if (res.success) {
+                    // Redirect to receipt page
+                    window.location.href = "receipt.html?id=" + res.booking.id;
+                } else {
+                    errDiv.textContent = res.error;
+                }
+            } else {
+                errDiv.textContent = "Server error!";
+            }
+        }
+    };
+    xhr.send(JSON.stringify({
+        username: user.username,
+        name: name,
+        roomType: roomType,
+        checkin: checkIn,
+        checkout: checkOut,
+        guests: guests,
+        phone: phone,
+        email: email
+    }));
+};
+</script>
+
+</body>
+</html>
