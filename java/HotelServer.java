@@ -68,6 +68,7 @@ public class HotelServer {
         server.createContext("/api/rooms", new RoomsHandler());
         server.createContext("/api/rooms/add", new RoomAddHandler());
         server.createContext("/api/rooms/delete", new RoomDeleteHandler());
+        server.createContext("/api/rooms/reorder", new RoomReorderHandler());
         server.createContext("/api/bookings/delete", new BookingDeleteHandler());
         server.createContext("/api/stats", new StatsHandler());
         server.createContext("/api/contact", new ContactHandler());
@@ -747,6 +748,72 @@ public class HotelServer {
 
             if (!found) {
                 sendJson(ex, 200, "{\"success\":false,\"error\":\"Room-ka lama helin!\"}"); return;
+            }
+
+            try (FileWriter fw = new FileWriter(DATA_DIR + "/rooms.txt")) {
+                fw.write(out.toString());
+            }
+            sendJson(ex, 200, "{\"success\":true}");
+        }
+    }
+
+    // ============================================
+    //  ROOM REORDER (persist custom order)
+    // ============================================
+    static class RoomReorderHandler implements HttpHandler {
+        public void handle(HttpExchange ex) throws IOException {
+            if (!"POST".equals(ex.getRequestMethod())) {
+                sendJson(ex, 405, "{\"success\":false,\"error\":\"Method not allowed\"}"); return;
+            }
+            String body = readBody(ex);
+            // Expect: {"order":["Standard","Deluxe","Suite",...]}
+            String orderJson = getJsonValue(body, "order");
+            if (orderJson.isEmpty()) {
+                sendJson(ex, 200, "{\"success\":false,\"error\":\"Order-ka waa inuu buuxsamay!\"}"); return;
+            }
+
+            // Parse the JSON array: ["Name1","Name2",...]
+            // We do simple manual parsing: split by "," and extract text between quotes
+            String[] names = orderJson.split(",");
+            List<String> orderedNames = new ArrayList<>();
+            for (String n : names) {
+                String clean = n.replaceAll("^\\[\"?|\"?\\]?$", "").replaceAll("^\"|\"$", "").trim();
+                // Handle the first and last elements which may have [ ]
+                clean = clean.replaceAll("^\\[|\\]$", "").replaceAll("\"", "");
+                if (!clean.isEmpty()) orderedNames.add(clean);
+            }
+            // Clean up — the above regex might not handle all edge cases, let's do it properly
+            orderedNames.clear();
+            // Extract all quoted strings from the JSON array
+            java.util.regex.Matcher m = java.util.regex.Pattern.compile("\"([^\"]+)\"").matcher(orderJson);
+            while (m.find()) {
+                orderedNames.add(m.group(1));
+            }
+
+            // Read current rooms
+            List<String[]> allRooms = readRooms();
+            // Build a lookup map: name → room record
+            java.util.Map<String, String[]> roomMap = new java.util.HashMap<>();
+            for (String[] r : allRooms) {
+                roomMap.put(r[0], r);
+            }
+
+            // Write rooms in the new order
+            StringBuilder out = new StringBuilder();
+            for (String name : orderedNames) {
+                String[] r = roomMap.get(name);
+                if (r != null) {
+                    out.append(r[0]).append("|").append(r[1]);
+                    if (r.length >= 3) out.append("|").append(r[2]);
+                    out.append("\n");
+                    roomMap.remove(name);
+                }
+            }
+            // Append any rooms that were in the file but not in the order list
+            for (String[] r : roomMap.values()) {
+                out.append(r[0]).append("|").append(r[1]);
+                if (r.length >= 3) out.append("|").append(r[2]);
+                out.append("\n");
             }
 
             try (FileWriter fw = new FileWriter(DATA_DIR + "/rooms.txt")) {

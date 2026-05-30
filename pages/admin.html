@@ -73,6 +73,17 @@ if (!user.isAdmin) {
 <tr><td></td><td><input type="button" value="Add Room" class="btn" onclick="addRoom()"> <span id="roomMsg" style="color:green;font-size:13px;"></span></td></tr>
 </table>
 
+<div style="margin:10px 0; display:flex; gap:6px; flex-wrap:wrap; align-items:center;">
+    <span style="font-size:13px; font-weight:bold; color:#333;">Sort:</span>
+    <input type="button" value="⬆ Name A-Z" class="btn btn-small" onclick="sortRooms('name')">
+    <input type="button" value="⬇ Name Z-A" class="btn btn-small" onclick="sortRooms('name_desc')">
+    <input type="button" value="⬆ Price $" class="btn btn-small" onclick="sortRooms('price')">
+    <input type="button" value="⬇ Price $" class="btn btn-small" onclick="sortRooms('price_desc')">
+    <span style="margin:0 8px; color:#ccc;">|</span>
+    <input type="button" value="💾 Save This Order" class="btn btn-small" onclick="saveRoomOrder()" style="background:#08c; color:#fff; font-weight:bold;">
+    <span id="orderMsg" style="font-size:12px; color:#080; margin-left:4px;"></span>
+</div>
+
 <div id="roomList">
 <p style="color:#888;">Loading rooms...</p>
 </div>
@@ -118,6 +129,19 @@ function loadStats() {
     xhr.send();
 }
 
+// Global room data for sorting
+window.roomsData = [];
+
+function renderRoomTable(rooms) {
+    var html = '<table class="data-table"><tr><th>Room Type</th><th>Price/Night</th><th>Amenities</th><th>Action</th></tr>';
+    for (var i = 0; i < rooms.length; i++) {
+        html += '<tr><td>' + rooms[i].name + '</td><td>$' + rooms[i].price + '</td><td>' + (rooms[i].amenities || '-') + '</td>';
+        html += '<td><input type="button" value="Delete" class="btn btn-small" onclick="deleteRoom(\'' + rooms[i].name.replace(/'/g, "\\'") + '\')"></td></tr>';
+    }
+    html += '</table>';
+    document.getElementById("roomList").innerHTML = html;
+}
+
 // ============ LOAD ROOMS ============
 function loadRooms() {
     var xhr = new XMLHttpRequest();
@@ -126,18 +150,60 @@ function loadRooms() {
         if (xhr.readyState === 4 && xhr.status === 200) {
             var res = JSON.parse(xhr.responseText);
             if (res.success) {
-                var rooms = res.rooms;
-                var html = '<table class="data-table"><tr><th>Room Type</th><th>Price/Night</th><th>Amenities</th><th>Action</th></tr>';
-                for (var i = 0; i < rooms.length; i++) {
-                    html += '<tr><td>' + rooms[i].name + '</td><td>$' + rooms[i].price + '</td><td>' + (rooms[i].amenities || '-') + '</td>';
-                    html += '<td><input type="button" value="Delete" class="btn btn-small" onclick="deleteRoom(\'' + rooms[i].name.replace(/'/g, "\\'") + '\')"></td></tr>';
-                }
-                html += '</table>';
-                document.getElementById("roomList").innerHTML = html;
+                window.roomsData = res.rooms;
+                renderRoomTable(window.roomsData);
             }
         }
     };
     xhr.send();
+}
+
+// ============ SORT ROOMS ============
+function sortRooms(mode) {
+    var sorted = window.roomsData.slice(); // copy
+    switch (mode) {
+        case 'name':
+            sorted.sort(function(a, b) { return a.name.localeCompare(b.name); });
+            break;
+        case 'name_desc':
+            sorted.sort(function(a, b) { return b.name.localeCompare(a.name); });
+            break;
+        case 'price':
+            sorted.sort(function(a, b) { return parseInt(a.price) - parseInt(b.price); });
+            break;
+        case 'price_desc':
+            sorted.sort(function(a, b) { return parseInt(b.price) - parseInt(a.price); });
+            break;
+    }
+    renderRoomTable(sorted);
+    window.roomsData = sorted; // update global so Save Order uses sorted order
+    document.getElementById("orderMsg").textContent = "";
+}
+
+// ============ SAVE ROOM ORDER ============
+function saveRoomOrder() {
+    var names = window.roomsData.map(function(r) { return r.name; });
+    var msg = document.getElementById("orderMsg");
+    msg.textContent = "Saving...";
+    msg.style.color = "#555";
+
+    var xhr = new XMLHttpRequest();
+    xhr.open("POST", "/api/rooms/reorder", true);
+    xhr.setRequestHeader("Content-Type", "application/json");
+    xhr.onreadystatechange = function() {
+        if (xhr.readyState === 4 && xhr.status === 200) {
+            var res = JSON.parse(xhr.responseText);
+            if (res.success) {
+                msg.style.color = "#080";
+                msg.textContent = "✅ Order saved!";
+                setTimeout(function() { msg.textContent = ""; }, 3000);
+            } else {
+                msg.style.color = "#c00";
+                msg.textContent = res.error;
+            }
+        }
+    };
+    xhr.send(JSON.stringify({order: names}));
 }
 
 // ============ ADD ROOM ============
@@ -182,6 +248,7 @@ function deleteRoom(name) {
         if (xhr.readyState === 4 && xhr.status === 200) {
             var res = JSON.parse(xhr.responseText);
             if (res.success) {
+                loadRooms();
                 loadUsers();
                 loadStats();
                 loadAllBookings();
